@@ -16,7 +16,12 @@
 
 package org.springframework.cloud.data.rest.controller;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.data.core.ModuleCoordinates;
@@ -24,6 +29,7 @@ import org.springframework.cloud.data.core.ModuleDefinition;
 import org.springframework.cloud.data.core.ModuleDeploymentId;
 import org.springframework.cloud.data.core.ModuleDeploymentRequest;
 import org.springframework.cloud.data.core.StreamDefinition;
+import org.springframework.cloud.data.module.ModuleStatus;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
 import org.springframework.cloud.data.module.registry.ModuleRegistry;
 import org.springframework.cloud.data.rest.repository.StreamDefinitionRepository;
@@ -32,6 +38,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,11 +54,14 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Mark Fisher
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 @RestController
 @RequestMapping("/streams")
 @ExposesResourceFor(StreamDefinitionResource.class)
 public class StreamController {
+
+	private static final Logger logger = LoggerFactory.getLogger(StreamController.class);
 
 	/**
 	 * The repository this controller will use for stream CRUD operations.
@@ -211,19 +221,55 @@ public class StreamController {
 		}
 	}
 
+	private String calculateStreamState(String name) {
+		Set<ModuleStatus.State> moduleStates = new HashSet<>();
+		StreamDefinition stream = repository.findOne(name);
+		for (ModuleDefinition module : stream.getModuleDefinitions()) {
+		    ModuleStatus status = deployer.status(ModuleDeploymentId.fromModuleDefinition(module));
+		    moduleStates.add(status.getState());
+		}
+
+		logger.debug("states: {}", moduleStates);
+
+		// todo: this requires more thought...
+		if (moduleStates.contains(ModuleStatus.State.failed)) {
+			return ModuleStatus.State.failed.toString();
+		}
+		else if (moduleStates.contains(ModuleStatus.State.incomplete)) {
+			return ModuleStatus.State.incomplete.toString();
+		}
+		else if (moduleStates.contains(ModuleStatus.State.deploying)) {
+			return ModuleStatus.State.deploying.toString();
+		}
+		else if (moduleStates.contains(ModuleStatus.State.deployed) && moduleStates.size() == 1) {
+			return ModuleStatus.State.deployed.toString();
+		}
+		else {
+			return ModuleStatus.State.unknown.toString();
+		}
+	}
 
 	/**
-	 * Extension of {@link StreamDefinitionResource.Assembler} that
-	 * assembles {@link StreamDefinitionResource}s with stream status.
+	 * {@link org.springframework.hateoas.ResourceAssembler} implementation
+	 * that converts {@link StreamDefinition}s to {@link StreamDefinitionResource}s.
 	 */
-	class Assembler extends StreamDefinitionResource.Assembler {
-		@Override
-		public StreamDefinitionResource toResource(StreamDefinition entity) {
+	class Assembler extends ResourceAssemblerSupport<StreamDefinition, StreamDefinitionResource> {
 
-			StreamDefinitionResource resource = super.toResource(entity);
-			// todo: set stream status based on SPI status
-			resource.setStatus("undeployed");
+		public Assembler() {
+			super(StreamController.class, StreamDefinitionResource.class);
+		}
+
+		@Override
+		public StreamDefinitionResource toResource(StreamDefinition stream) {
+			return createResourceWithId(stream.getName(), stream);
+		}
+
+		@Override
+		public StreamDefinitionResource instantiateResource(StreamDefinition stream) {
+			StreamDefinitionResource resource = new StreamDefinitionResource(stream.getName(), stream.getDslText());
+			resource.setStatus(calculateStreamState(stream.getName()));
 			return resource;
 		}
 	}
+
 }
