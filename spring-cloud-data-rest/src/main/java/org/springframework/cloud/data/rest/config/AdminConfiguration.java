@@ -20,16 +20,19 @@ import static org.springframework.hateoas.config.EnableHypermediaSupport.Hyperme
 
 import java.util.List;
 
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
 import org.springframework.cloud.data.module.deployer.cloudfoundry.CloudFoundryModuleDeployer;
 import org.springframework.cloud.data.module.deployer.lattice.ReceptorModuleDeployer;
 import org.springframework.cloud.data.module.deployer.local.LocalModuleDeployer;
+import org.springframework.cloud.data.module.deployer.yarn.YarnModuleDeployer;
 import org.springframework.cloud.data.module.registry.ModuleRegistry;
 import org.springframework.cloud.data.module.registry.StubModuleRegistry;
 import org.springframework.cloud.data.rest.repository.InMemoryStreamDefinitionRepository;
 import org.springframework.cloud.data.rest.repository.StreamDefinitionRepository;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncher;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncherConfiguration;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -72,9 +75,24 @@ public class AdminConfiguration {
 	@Import(ModuleLauncherConfiguration.class)
 	protected static class LocalConfig {
 
-		@Bean
-		public ModuleDeployer moduleDeployer(ModuleLauncher moduleLauncher) {
-			return new LocalModuleDeployer(moduleLauncher);
+		@Configuration
+		@Profile("!yarn")
+		protected static class LocalDeployerConfig {
+
+			@Bean
+			public ModuleDeployer moduleDeployer(ModuleLauncher moduleLauncher) {
+				return new LocalModuleDeployer(moduleLauncher);
+			}
+		}
+
+		@Configuration
+		@Profile("yarn")
+		protected static class YarnConfig {
+
+			@Bean
+			public ModuleDeployer moduleDeployer() {
+				return new YarnModuleDeployer();
+			}
 		}
 	}
 

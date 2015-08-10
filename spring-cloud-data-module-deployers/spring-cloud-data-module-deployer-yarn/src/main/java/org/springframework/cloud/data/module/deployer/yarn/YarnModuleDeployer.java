@@ -28,7 +28,9 @@ import org.springframework.cloud.data.core.ModuleDeploymentRequest;
 import org.springframework.cloud.data.module.ModuleStatus;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.yarn.boot.app.YarnContainerClusterApplication;
+import org.springframework.yarn.boot.app.YarnInfoApplication;
 
 /**
  * {@link ModuleDeployer} which communicates to XD's yarn app running
@@ -45,15 +47,15 @@ public class YarnModuleDeployer implements ModuleDeployer {
 	private static final Logger logger = LoggerFactory.getLogger(YarnModuleDeployer.class);
 	private static final String PREFIX = "spring.yarn.internal.ContainerClusterApplication.";
 
-	private final String yarnApplicationId;
-
-	public YarnModuleDeployer(String yarnApplicationId) {
-		Assert.notNull(yarnApplicationId, "Yarn ApplicationId cannot be null");
-		this.yarnApplicationId = yarnApplicationId;
+	public YarnModuleDeployer() {
 	}
 
 	@Override
 	public ModuleDeploymentId deploy(ModuleDeploymentRequest request) {
+
+		String yarnApplicationId = findRunningXdYarnApp();
+		logger.info("Using application id " + yarnApplicationId);
+
 		int count = request.getCount();
 		ModuleCoordinates coordinates = request.getCoordinates();
 		ModuleDefinition definition = request.getDefinition();
@@ -65,9 +67,9 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		String module = coordinates.toString();
 		logger.info("deploying module: " + module);
 
-		String clusterId = module;
+		String clusterId = module.replaceAll("\\.", "_");
 
-		// Using same app instance that what yarn boot cli is using to
+		// Using same app instance yarn boot cli is using to
 		// communicate with an app running on yarn via its boot actuator
 		YarnContainerClusterApplication app = new YarnContainerClusterApplication();
 		Properties appProperties = new Properties();
@@ -81,6 +83,15 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		app.appProperties(appProperties);
 		String output = app.run();
 		logger.info("Output from YarnContainerClusterApplication run for CLUSTERCREATE: " + output);
+
+		app = new YarnContainerClusterApplication();
+		appProperties = new Properties();
+		appProperties.setProperty(PREFIX + "operation", "CLUSTERSTART");
+		appProperties.setProperty(PREFIX + "applicationId", yarnApplicationId);
+		appProperties.setProperty(PREFIX + "clusterId", clusterId);
+		app.appProperties(appProperties);
+		output = app.run();
+		logger.info("Output from YarnContainerClusterApplication run for CLUSTERSTART: " + output);
 
 		return new ModuleDeploymentId(definition.getGroup(), definition.getLabel());
 	}
@@ -101,5 +112,24 @@ public class YarnModuleDeployer implements ModuleDeployer {
 	public Map<ModuleDeploymentId, ModuleStatus> status() {
 		// check all group statuses and map it back to id and status
 		throw new UnsupportedOperationException("todo");
+	}
+
+	private String findRunningXdYarnApp() {
+		YarnInfoApplication app = new YarnInfoApplication();
+		Properties appProperties = new Properties();
+		appProperties.setProperty("spring.yarn.internal.YarnInfoApplication.operation", "SUBMITTED");
+		appProperties.setProperty("spring.yarn.internal.YarnInfoApplication.verbose", "false");
+		appProperties.setProperty("spring.yarn.internal.YarnInfoApplication.type", "XD");
+		app.appProperties(appProperties);
+		String info = app.run();
+		logger.info("Full status response for SUBMITTED app " + info);
+
+		String[] lines = info.split("\\r?\\n");
+		logger.info("Parsing application id from " + StringUtils.arrayToCommaDelimitedString(lines));
+		if (lines.length == 3) {
+			return lines[2].trim().split("\\s+")[0].trim();
+		} else {
+			return null;
+		}
 	}
 }
