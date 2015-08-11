@@ -129,7 +129,7 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		logger.info("Output from YarnContainerClusterApplication run for CLUSTERINFO: " + info);
 
 		boolean deployed = false;
-		String[] lines = info.split("\\r?\\n");
+		String[] lines = info.trim().split("\\r?\\n");
 		if (lines.length == 3 && lines[2].contains("RUNNING")) {
 			deployed = true;
 		}
