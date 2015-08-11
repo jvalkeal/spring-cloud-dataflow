@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.data.module.deployer.yarn;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -51,28 +54,23 @@ public class YarnModuleDeployer implements ModuleDeployer {
 
 	@Override
 	public ModuleDeploymentId deploy(ModuleDeploymentRequest request) {
-
-		String yarnApplicationId = findRunningXdYarnApp();
-		logger.info("Using application id " + yarnApplicationId);
-
 		int count = request.getCount();
 		ModuleCoordinates coordinates = request.getCoordinates();
 		ModuleDefinition definition = request.getDefinition();
 		logger.info("deploying request for definition: " + definition);
 
+		ModuleDeploymentId moduleDeploymentId = new ModuleDeploymentId(definition.getGroup(), definition.getLabel());
+		String clusterId = sanitizeClusterId(convertFromModuleDeploymentId(moduleDeploymentId));
+
+		String yarnApplicationId = findRunningXdYarnApp();
+		logger.info("Using application id " + yarnApplicationId);
+		String module = coordinates.toString();
+		logger.info("deploying module: " + module);
+
 		Map<String, String> definitionParameters = definition.getParameters();
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
 		logger.info("definitionParameters: " + definitionParameters);
 		logger.info("deploymentProperties: " + deploymentProperties);
-
-
-		String module = coordinates.toString();
-		logger.info("deploying module: " + module);
-
-		// spring yarn bug which treats postfix after dot
-		// as file delimiter and removes it per default mvc
-		// feature. need to handle this in shdp
-		String clusterId = module.replaceAll("\\.", "_");
 
 		// Using same app instance yarn boot cli is using to
 		// communicate with an app running on yarn via its boot actuator
@@ -98,28 +96,59 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		output = app.run();
 		logger.info("Output from YarnContainerClusterApplication run for CLUSTERSTART: " + output);
 
-		return new ModuleDeploymentId(definition.getGroup(), definition.getLabel());
+		return moduleDeploymentId;
 	}
 
 	@Override
 	public void undeploy(ModuleDeploymentId id) {
-		// shut down group
-		throw new UnsupportedOperationException("todo");
+		String clusterId = convertFromModuleDeploymentId(id);
+		String yarnApplicationId = findRunningXdYarnApp();
+		YarnContainerClusterApplication app = new YarnContainerClusterApplication();
+		Properties appProperties = new Properties();
+		appProperties.setProperty(PREFIX + "operation", "CLUSTERSTOP");
+		appProperties.setProperty(PREFIX + "applicationId", yarnApplicationId);
+		appProperties.setProperty(PREFIX + "clusterId", clusterId);
+		app.appProperties(appProperties);
+		String output = app.run();
+		logger.info("Output from YarnContainerClusterApplication run for CLUSTERSTOP: " + output);
 	}
 
 	@Override
 	public ModuleStatus status(ModuleDeploymentId id) {
-		// check group state from yarn app and map it to status
-		throw new UnsupportedOperationException("todo");
+		String yarnApplicationId = findRunningXdYarnApp();
+		String clusterId = convertFromModuleDeploymentId(id);
+
+		YarnContainerClusterApplication app = new YarnContainerClusterApplication();
+		Properties appProperties = new Properties();
+		appProperties.setProperty(PREFIX + "operation", "CLUSTERINFO");
+		appProperties.setProperty(PREFIX + "applicationId", yarnApplicationId);
+		appProperties.setProperty(PREFIX + "verbose", "false");
+		appProperties.setProperty(PREFIX + "clusterId", clusterId);
+		app.appProperties(appProperties);
+		String info = app.run();
+		logger.info("Output from YarnContainerClusterApplication run for CLUSTERINFO: " + info);
+
+		boolean deployed = false;
+		String[] lines = info.split("\\r?\\n");
+		if (lines.length == 3 && lines[2].contains("RUNNING")) {
+			deployed = true;
+		}
+
+		YarnModuleInstanceStatus status = new YarnModuleInstanceStatus(id.toString(), deployed, null);
+		return ModuleStatus.of(id).with(status).build();
 	}
 
 	@Override
 	public Map<ModuleDeploymentId, ModuleStatus> status() {
-		// check all group statuses and map it back to id and status
-		throw new UnsupportedOperationException("todo");
+		HashMap<ModuleDeploymentId, ModuleStatus> statuses = new HashMap<ModuleDeploymentId, ModuleStatus>();
+		for (String clusterId : findRunningContainerClusters()) {
+			ModuleDeploymentId moduleDeploymentId = convertToModuleDeploymentId(clusterId);
+			statuses.put(moduleDeploymentId, status(moduleDeploymentId));
+		}
+		return statuses;
 	}
 
-	private String findRunningXdYarnApp() {
+	private static String findRunningXdYarnApp() {
 		YarnInfoApplication app = new YarnInfoApplication();
 		Properties appProperties = new Properties();
 		appProperties.setProperty("spring.yarn.internal.YarnInfoApplication.operation", "SUBMITTED");
@@ -140,6 +169,27 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		}
 	}
 
+	private static Collection<String> findRunningContainerClusters() {
+		String yarnApplicationId = findRunningXdYarnApp();
+
+		YarnContainerClusterApplication app = new YarnContainerClusterApplication();
+		Properties appProperties = new Properties();
+		appProperties.setProperty(PREFIX + "operation", "CLUSTERSINFO");
+		appProperties.setProperty(PREFIX + "applicationId", yarnApplicationId);
+		app.appProperties(appProperties);
+		String info = app.run();
+		logger.info("Output from YarnContainerClusterApplication run for CLUSTERSINFO: " + info);
+
+		ArrayList<String> ids = new ArrayList<String>();
+		String[] lines = info.split("\\r?\\n");
+		if (lines.length > 2) {
+			for (int i = 2; i < lines.length; i++) {
+				ids.add(lines[i].trim());
+			}
+		}
+		return ids;
+	}
+
 	private static String convertFromModuleDeploymentId(ModuleDeploymentId moduleDeploymentId) {
 		return moduleDeploymentId.getGroup() + ":" + moduleDeploymentId.getLabel();
 	}
@@ -151,6 +201,13 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		} else {
 			return null;
 		}
+	}
+
+	private static String sanitizeClusterId(String clusterId) {
+		// spring yarn bug which treats postfix after dot
+		// as file delimiter and removes it per default mvc
+		// feature. need to handle this in shdp
+		return clusterId.replaceAll("\\.", "_");
 	}
 
 }
