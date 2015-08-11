@@ -41,17 +41,17 @@ public class YarnModuleInstanceStatus implements ModuleInstanceStatus {
 
 	@Override
 	public String getId() {
-		return null;
+		return id;
 	}
 
 	@Override
 	public State getState() {
-		return null;
+		return state;
 	}
 
 	@Override
 	public Map<String, String> getAttributes() {
-		return null;
+		return attributes;
 	}
 
 }
