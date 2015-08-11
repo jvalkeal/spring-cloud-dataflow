@@ -9,9 +9,9 @@ spring:
         resourceManagerHost: localhost
     yarn:
         appType: BOOT
-        appName: scs-xd-app
+        appName: spring-cloud-data-yarn-app
         applicationBaseDir: /app/
-        applicationDir: /app/scs-xd-app/
+        applicationDir: /app/spring-cloud-data-yarn-app/
         appmaster:
             appmasterClass: hello.appmaster.XdAppmaster
             keepContextAlive: true
@@ -25,7 +25,7 @@ spring:
                             virtualCores: 1
                         launchcontext:
                             locality: false
-                            archiveFile: scs-xd-app-container-0.1.0.jar
+                            archiveFile: spring-cloud-data-yarn-container-1.0.0.BUILD-SNAPSHOT.jar
         endpoints:
             containercluster:
                 enabled: true
