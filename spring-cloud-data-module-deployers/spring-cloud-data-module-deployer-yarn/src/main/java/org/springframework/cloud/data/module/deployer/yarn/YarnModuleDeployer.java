@@ -27,7 +27,6 @@ import org.springframework.cloud.data.core.ModuleDeploymentId;
 import org.springframework.cloud.data.core.ModuleDeploymentRequest;
 import org.springframework.cloud.data.module.ModuleStatus;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.yarn.boot.app.YarnContainerClusterApplication;
 import org.springframework.yarn.boot.app.YarnInfoApplication;

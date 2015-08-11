@@ -13,7 +13,7 @@ spring:
         applicationBaseDir: /app/
         applicationDir: /app/spring-cloud-data-yarn-app/
         appmaster:
-            appmasterClass: hello.appmaster.XdAppmaster
+            appmasterClass: org.springframework.cloud.data.yarn.appmaster.XdAppmaster
             keepContextAlive: true
             containercluster:
                 enabled: true

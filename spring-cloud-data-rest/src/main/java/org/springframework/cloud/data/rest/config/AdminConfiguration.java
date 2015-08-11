@@ -20,10 +20,9 @@ import static org.springframework.hateoas.config.EnableHypermediaSupport.Hyperme
 
 import java.util.List;
 
-import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
 import org.springframework.cloud.data.module.deployer.local.LocalModuleDeployer;
-import org.springframework.cloud.data.module.deployer.yarn.YarnModuleDeployer;
 import org.springframework.cloud.data.module.registry.ModuleRegistry;
 import org.springframework.cloud.data.module.registry.StubModuleRegistry;
 import org.springframework.cloud.data.rest.repository.InMemoryStreamDefinitionRepository;
@@ -32,7 +31,6 @@ import org.springframework.cloud.data.rest.repository.StreamDefinitionRepository
 import org.springframework.cloud.data.rest.repository.TaskDefinitionRepository;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncher;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncherConfiguration;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -58,7 +56,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Configuration
 @EnableHypermediaSupport(type = HAL)
 @EnableSpringDataWebSupport
-@Import(CloudConfiguration.class)
+@Import({ CloudConfiguration.class, YarnConfiguration.class })
 @ComponentScan(basePackages = "org.springframework.cloud.data.rest.controller")
 public class AdminConfiguration {
 
@@ -77,31 +75,16 @@ public class AdminConfiguration {
 		return new StubModuleRegistry();
 	}
 
-	@Configuration
-	@Profile("!cloud")
-	@Import(ModuleLauncherConfiguration.class)
-	protected static class LocalConfig {
-
-		@Configuration
-		@Profile("!yarn")
-		protected static class LocalDeployerConfig {
-
-			@Bean
-			public ModuleDeployer moduleDeployer(ModuleLauncher moduleLauncher) {
-				return new LocalModuleDeployer(moduleLauncher);
-			}
-		}
-
-		@Configuration
-		@Profile("yarn")
-		protected static class YarnConfig {
-
-			@Bean
-			public ModuleDeployer moduleDeployer() {
-				return new YarnModuleDeployer();
-			}
-		}
-	}
+//	@Configuration
+//	@Profile("!cloud")
+//	@Import(ModuleLauncherConfiguration.class)
+//	protected static class LocalConfig {
+//
+//		@Bean
+//		public ModuleDeployer moduleDeployer(ModuleLauncher moduleLauncher) {
+//			return new LocalModuleDeployer(moduleLauncher);
+//		}
+//	}
 
 	@Bean
 	public WebMvcConfigurer configurer() {
