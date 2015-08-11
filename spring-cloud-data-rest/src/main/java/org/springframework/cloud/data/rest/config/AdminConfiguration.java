@@ -22,14 +22,14 @@ import java.util.List;
 
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
-import org.springframework.cloud.data.module.deployer.cloudfoundry.CloudFoundryModuleDeployer;
-import org.springframework.cloud.data.module.deployer.lattice.ReceptorModuleDeployer;
 import org.springframework.cloud.data.module.deployer.local.LocalModuleDeployer;
 import org.springframework.cloud.data.module.deployer.yarn.YarnModuleDeployer;
 import org.springframework.cloud.data.module.registry.ModuleRegistry;
 import org.springframework.cloud.data.module.registry.StubModuleRegistry;
 import org.springframework.cloud.data.rest.repository.InMemoryStreamDefinitionRepository;
+import org.springframework.cloud.data.rest.repository.InMemoryTaskDefinitionRepository;
 import org.springframework.cloud.data.rest.repository.StreamDefinitionRepository;
+import org.springframework.cloud.data.rest.repository.TaskDefinitionRepository;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncher;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncherConfiguration;
 import org.springframework.context.ApplicationListener;
@@ -53,16 +53,23 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Patrick Peralta
+ * @author Thomas Risberg
  */
 @Configuration
 @EnableHypermediaSupport(type = HAL)
 @EnableSpringDataWebSupport
+@Import(CloudConfiguration.class)
 @ComponentScan(basePackages = "org.springframework.cloud.data.rest.controller")
 public class AdminConfiguration {
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
 		return new InMemoryStreamDefinitionRepository();
+	}
+
+	@Bean
+	public TaskDefinitionRepository taskDefinitionRepository() {
+		return new InMemoryTaskDefinitionRepository();
 	}
 
 	@Bean
@@ -92,31 +99,6 @@ public class AdminConfiguration {
 			@Bean
 			public ModuleDeployer moduleDeployer() {
 				return new YarnModuleDeployer();
-			}
-		}
-	}
-
-	@Configuration
-	@Profile("cloud")
-	protected static class CloudConfig {
-
-		@Configuration
-		@Profile("lattice")
-		protected static class LatticeConfig {
-
-			@Bean
-			public ModuleDeployer moduleDeployer() {
-				return new ReceptorModuleDeployer();
-			}
-		}
-
-		@Configuration
-		@Profile("!lattice")
-		protected static class CloudFoundryConfig {
-
-			@Bean
-			public ModuleDeployer moduleDeployer() {
-				return new CloudFoundryModuleDeployer();
 			}
 		}
 	}
