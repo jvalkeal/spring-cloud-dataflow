@@ -30,4 +30,4 @@ spring:
             containercluster:
                 enabled: true
             containerregister:
-                enabled: true
+                enabled: false

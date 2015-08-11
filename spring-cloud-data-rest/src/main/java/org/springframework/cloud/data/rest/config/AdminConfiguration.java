@@ -20,7 +20,6 @@ import static org.springframework.hateoas.config.EnableHypermediaSupport.Hyperme
 
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.data.module.deployer.ModuleDeployer;
 import org.springframework.cloud.data.module.deployer.local.LocalModuleDeployer;
 import org.springframework.cloud.data.module.registry.ModuleRegistry;
@@ -33,9 +32,9 @@ import org.springframework.cloud.stream.module.launcher.ModuleLauncher;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncherConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -52,6 +51,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  * @author Marius Bogoevici
  * @author Patrick Peralta
  * @author Thomas Risberg
+ * @author Janne Valkealahti
  */
 @Configuration
 @EnableHypermediaSupport(type = HAL)
@@ -75,16 +75,16 @@ public class AdminConfiguration {
 		return new StubModuleRegistry();
 	}
 
-//	@Configuration
-//	@Profile("!cloud")
-//	@Import(ModuleLauncherConfiguration.class)
-//	protected static class LocalConfig {
-//
-//		@Bean
-//		public ModuleDeployer moduleDeployer(ModuleLauncher moduleLauncher) {
-//			return new LocalModuleDeployer(moduleLauncher);
-//		}
-//	}
+	@Configuration
+	@Conditional(LocalCondition.class)
+	@Import(ModuleLauncherConfiguration.class)
+	protected static class LocalConfig {
+
+		@Bean
+		public ModuleDeployer moduleDeployer(ModuleLauncher moduleLauncher) {
+			return new LocalModuleDeployer(moduleLauncher);
+		}
+	}
 
 	@Bean
 	public WebMvcConfigurer configurer() {

@@ -58,14 +58,20 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		int count = request.getCount();
 		ModuleCoordinates coordinates = request.getCoordinates();
 		ModuleDefinition definition = request.getDefinition();
+		logger.info("deploying request for definition: " + definition);
 
 		Map<String, String> definitionParameters = definition.getParameters();
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
+		logger.info("definitionParameters: " + definitionParameters);
+		logger.info("deploymentProperties: " + deploymentProperties);
 
 
 		String module = coordinates.toString();
 		logger.info("deploying module: " + module);
 
+		// spring yarn bug which treats postfix after dot
+		// as file delimiter and removes it per default mvc
+		// feature. need to handle this in shdp
 		String clusterId = module.replaceAll("\\.", "_");
 
 		// Using same app instance yarn boot cli is using to
@@ -123,6 +129,8 @@ public class YarnModuleDeployer implements ModuleDeployer {
 		String info = app.run();
 		logger.info("Full status response for SUBMITTED app " + info);
 
+		// TODO: either make this easier in YarnInfoApplication
+		//       or use rest api directly
 		String[] lines = info.split("\\r?\\n");
 		logger.info("Parsing application id from " + StringUtils.arrayToCommaDelimitedString(lines));
 		if (lines.length == 3) {
@@ -131,4 +139,18 @@ public class YarnModuleDeployer implements ModuleDeployer {
 			return null;
 		}
 	}
+
+	private static String convertFromModuleDeploymentId(ModuleDeploymentId moduleDeploymentId) {
+		return moduleDeploymentId.getGroup() + ":" + moduleDeploymentId.getLabel();
+	}
+
+	private static ModuleDeploymentId convertToModuleDeploymentId(String containerClusterName) {
+		String[] split = containerClusterName.split(":");
+		if (split.length == 2) {
+			return new ModuleDeploymentId(split[0], split[1]);
+		} else {
+			return null;
+		}
+	}
+
 }
