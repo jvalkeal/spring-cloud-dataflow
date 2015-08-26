@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.data.yarn.container;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
@@ -27,6 +30,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncher;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncherConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.yarn.annotation.OnContainerStart;
 import org.springframework.yarn.annotation.YarnComponent;
@@ -53,15 +57,28 @@ public class ContainerApplication extends YarnContainerSupport {
 	@OnContainerStart
 	public Future<Boolean> runModule(@YarnParameters Properties properties, @YarnParameter("containerModules") String module) {
 		log.info("runModule module=" + module);
-		log.info("runModule properies=" + properties);
+		log.info("runModule properties=" + properties);
 		log.info("moduleLauncher=" + moduleLauncher);
+
+		List<String> args = new ArrayList<String>();
+
+		for (Entry<Object, Object> entry : properties.entrySet()) {
+			String key = entry.getKey().toString();
+			String value = entry.getValue().toString();
+			if (!key.startsWith("containerModules")) {
+				args.add("--" + key + "=" + value);
+			}
+		}
+
+		log.info("Passing args to moduleLauncher: "
+				+ StringUtils.arrayToCommaDelimitedString(args.toArray(new String[args.size()])));
 
 		// we should somehow get status back from module
 		// launcher when it fails or finishes to set future
 		// indicating we're done. Naturally exception will
 		// terminate execution chain and container will exit.
 		SettableListenableFuture<Boolean> status = new SettableListenableFuture<Boolean>();
-		moduleLauncher.launch(new String[] { module }, new String[0]);
+		moduleLauncher.launch(new String[] { module }, args.toArray(new String[args.size()]));
 		return status;
 	}
 
