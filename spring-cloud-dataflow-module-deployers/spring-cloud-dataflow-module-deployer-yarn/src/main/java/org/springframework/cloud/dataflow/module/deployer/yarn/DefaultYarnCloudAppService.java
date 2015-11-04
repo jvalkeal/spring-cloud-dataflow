@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.StringUtils;
 import org.springframework.yarn.support.console.ContainerClusterReport.ClustersInfoReportData;
 
 /**
@@ -38,21 +39,30 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultYarnCloudAppService.class);
 
-	YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app");
+//	private YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app");
+
+	private final YarnCloudAppServiceApplication app;
 	private final String bootstrapName;
+
+	public DefaultYarnCloudAppService(YarnCloudAppServiceApplication app, String bootstrapName) {
+		this.app = app;
+		this.bootstrapName = bootstrapName;
+	}
 	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Properties instanceProperties = new Properties();
 		instanceProperties.setProperty("spring.yarn.applicationVersion", "app");
-		app.configFile("application.properties", instanceProperties);		
-		app.setArgs(new String[]{"--spring.config.name="+bootstrapName});
+		app.configFile("application.properties", instanceProperties);	
+		if (StringUtils.hasText(bootstrapName)) {
+			app.setArgs(new String[] { "--spring.config.name=" + bootstrapName });
+		}
 		app.afterPropertiesSet();
 	}
 	
-	public DefaultYarnCloudAppService(String bootstrapName) {
-		this.bootstrapName = bootstrapName;
-	}
+//	public DefaultYarnCloudAppService(String bootstrapName) {
+//		this.bootstrapName = bootstrapName;
+//	}
 	
 	@Override
 	public Collection<CloudAppInfo> getApplications() {

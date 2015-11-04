@@ -40,25 +40,14 @@ import org.springframework.yarn.test.junit.ApplicationInfo;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AbstractCliBootYarnClusterTests implements ApplicationContextAware {
 
-	protected ApplicationContext applicationContext;
-
-	protected Configuration configuration;
-
-	protected YarnCluster yarnCluster;
-
-	protected YarnClient yarnClient;
-
-	public ApplicationContext getApplicationContext() {
-		return applicationContext;
-	}
+	private ApplicationContext applicationContext;
+	private Configuration configuration;
+	private YarnCluster yarnCluster;
+	private YarnClient yarnClient;
 
 	@Override
 	public final void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
-	}
-
-	public Configuration getConfiguration() {
-		return configuration;
 	}
 
 	@Autowired
@@ -66,6 +55,19 @@ public class AbstractCliBootYarnClusterTests implements ApplicationContextAware 
 		this.configuration = configuration;
 	}
 	
+	@Autowired
+	public void setYarnCluster(YarnCluster yarnCluster) {
+		this.yarnCluster = yarnCluster;
+	}
+
+	public ApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
+
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
 	public void setYarnClient(YarnClient yarnClient) {
 		this.yarnClient = yarnClient;
 	}
@@ -76,11 +78,6 @@ public class AbstractCliBootYarnClusterTests implements ApplicationContextAware 
 	
 	public YarnCluster getYarnCluster() {
 		return yarnCluster;
-	}
-
-	@Autowired
-	public void setYarnCluster(YarnCluster yarnCluster) {
-		this.yarnCluster = yarnCluster;
 	}
 
 	protected ApplicationInfo submitApplicationAndWait(Object source, String[] args) throws Exception {
