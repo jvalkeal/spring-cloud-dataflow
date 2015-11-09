@@ -16,11 +16,10 @@
 
 package org.springframework.cloud.dataflow.yarn.buildtests;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
@@ -29,11 +28,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.dataflow.admin.config.YarnConfiguration;
 import org.springframework.cloud.dataflow.core.ArtifactCoordinates;
@@ -46,6 +45,7 @@ import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppServi
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppService.CloudAppInstanceInfo;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppServiceApplication;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnModuleDeployer;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -119,16 +119,16 @@ public class YarnModuleDeployerIT  extends AbstractCliBootYarnClusterTests {
 	
 		ModuleDeploymentId timeId = deployer.deploy(time);
 		ApplicationId applicationId = assertWaitApp(2, TimeUnit.MINUTES, yarnCloudAppService);
-		File timeStdoutFile = assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "Started TimeSourceApplication");
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "Started TimeSourceApplication");
 		
 		ModuleDeploymentId logId = deployer.deploy(log);
-		File logStdoutFile = assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "Started LogSinkApplication");
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "Started LogSinkApplication");
 		
 		deployer.undeploy(timeId);
-		timeStdoutFile = assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped outbound.ticktock.0");
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped outbound.ticktock.0");
 		
 		deployer.undeploy(logId);
-		logStdoutFile = assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped inbound.ticktock.0");
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped inbound.ticktock.0");
 		
 		Collection<CloudAppInstanceInfo> instances = yarnCloudAppService.getInstances();
 		assertThat(instances.size(), is(1));
@@ -203,20 +203,15 @@ public class YarnModuleDeployerIT  extends AbstractCliBootYarnClusterTests {
 
 		@Autowired
 		private org.apache.hadoop.conf.Configuration configuration;
-		
+
 		@Override
 		@Bean
 		public YarnCloudAppService yarnCloudAppService() {
-			return new DefaultYarnCloudAppService(yarnCloudAppServiceApplication(), null);
+			ApplicationContextInitializer<?>[] initializers = new ApplicationContextInitializer<?>[] {
+					new HadoopConfigurationInjectingInitializer(configuration) };
+			return new DefaultYarnCloudAppService(null, initializers);
 		}
-		
-		@Bean
-		public YarnCloudAppServiceApplication yarnCloudAppServiceApplication() {
-			YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app");
-			app.setInitializers(new HadoopConfigurationInjectingInitializer(configuration));			
-			return app;
-		}
-		
+
 	}
 	
 }

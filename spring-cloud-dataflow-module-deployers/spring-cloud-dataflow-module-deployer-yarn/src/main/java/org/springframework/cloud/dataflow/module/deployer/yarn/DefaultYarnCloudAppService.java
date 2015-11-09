@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.util.StringUtils;
 import org.springframework.yarn.support.console.ContainerClusterReport.ClustersInfoReportData;
 
@@ -38,50 +39,37 @@ import org.springframework.yarn.support.console.ContainerClusterReport.ClustersI
 public class DefaultYarnCloudAppService implements YarnCloudAppService, InitializingBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultYarnCloudAppService.class);
-
-//	private YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app");
-
-	private final YarnCloudAppServiceApplication app;
+	private final ApplicationContextInitializer<?>[] initializers;
 	private final String bootstrapName;
+	private final Map<String, YarnCloudAppServiceApplication> appCache = new HashMap<String, YarnCloudAppServiceApplication>();
 
-	public DefaultYarnCloudAppService(YarnCloudAppServiceApplication app, String bootstrapName) {
-		this.app = app;
+	public DefaultYarnCloudAppService(String bootstrapName, ApplicationContextInitializer<?>... initializers) {
 		this.bootstrapName = bootstrapName;
+		this.initializers = initializers;
 	}
 	
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Properties instanceProperties = new Properties();
-		instanceProperties.setProperty("spring.yarn.applicationVersion", "app");
-		app.configFile("application.properties", instanceProperties);	
-		if (StringUtils.hasText(bootstrapName)) {
-			app.setArgs(new String[] { "--spring.config.name=" + bootstrapName });
-		}
-		app.afterPropertiesSet();
 	}
-	
-//	public DefaultYarnCloudAppService(String bootstrapName) {
-//		this.bootstrapName = bootstrapName;
-//	}
-	
+		
 	@Override
 	public Collection<CloudAppInfo> getApplications() {
-		return app.getPushedApplications();
+		return getApp(null).getPushedApplications();
 	}
 
 	@Override
 	public Collection<CloudAppInstanceInfo> getInstances() {
-		return app.getSubmittedApplications();
+		return getApp(null).getSubmittedApplications();
 	}
 
 	@Override
 	public void pushApplication(String appVersion) {
-		app.pushApplication();
+		getApp(appVersion).pushApplication(appVersion);
 	}
 
 	@Override
 	public String submitApplication(String appVersion) {
-		return app.submitApplication("app");
+		return getApp(appVersion).submitApplication(appVersion);
 	}
 
 	@Override
@@ -95,17 +83,17 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 		for (Map.Entry<String, String> entry : definitionParameters.entrySet()) {
 			extraProperties.put("containerArg" + i++, entry.getKey() + "=" + entry.getValue());
 		}
-		app.createCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId, "module-template", "default", 1, null, null, null, extraProperties);
+		getApp(null).createCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId, "module-template", "default", 1, null, null, null, extraProperties);
 	}
 
 	@Override
 	public void startCluster(String yarnApplicationId, String clusterId) {
-		app.startCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		getApp(null).startCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 	}
 
 	@Override
 	public void stopCluster(String yarnApplicationId, String clusterId) {
-		app.stopCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		getApp(null).stopCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 	}
 
 	@Override
@@ -121,21 +109,46 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 
 	@Override
 	public Collection<String> getClusters(String yarnApplicationId) {
-		return app.getClustersInfo(ConverterUtils.toApplicationId(yarnApplicationId));
+		return getApp(null).getClustersInfo(ConverterUtils.toApplicationId(yarnApplicationId));
 	}
 
 	@Override
 	public void destroyCluster(String yarnApplicationId, String clusterId) {
-		app.destroyCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		getApp(null).destroyCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 	}
 
 	private Map<String, String> getInstanceClustersStates(String yarnApplicationId, String clusterId) {
 		HashMap<String, String> states = new HashMap<String, String>();
-		List<ClustersInfoReportData> clusterInfo = app.getClusterInfo(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		List<ClustersInfoReportData> clusterInfo = getApp(null).getClusterInfo(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 		if (clusterInfo.size() == 1) {
 			states.put(clusterId, clusterInfo.get(0).getState());			
 		}
 		return states;
+	}
+	
+	private synchronized YarnCloudAppServiceApplication getApp(String appVersion) {
+		YarnCloudAppServiceApplication app = appCache.get(appVersion);
+		if (app == null) {
+			
+			Properties configFileProperties = new Properties();
+			if (StringUtils.hasText(appVersion)) {
+				configFileProperties.setProperty("spring.yarn.applicationVersion", appVersion);				
+			}
+			
+			String[] runArgs = null;
+			if (StringUtils.hasText(bootstrapName)) {
+				runArgs = new String[] { "--spring.config.name=" + bootstrapName };
+			}
+			
+			app = new YarnCloudAppServiceApplication(appVersion, "application.properties", configFileProperties, runArgs, initializers);
+			try {
+				app.afterPropertiesSet();
+			} catch (Exception e) {
+				throw new RuntimeException("Error initializing YarnCloudAppServiceApplication", e);
+			}
+			appCache.put(appVersion, app);
+		}
+		return app;
 	}
 
 }

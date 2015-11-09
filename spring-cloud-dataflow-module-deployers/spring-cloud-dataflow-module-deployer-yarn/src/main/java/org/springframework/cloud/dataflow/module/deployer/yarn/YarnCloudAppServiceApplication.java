@@ -45,6 +45,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.boot.actuate.endpoint.YarnContainerClusterEndpoint;
@@ -81,16 +82,23 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 	private Map<String, Properties> configFilesContents = new HashMap<String, Properties>();
 	private String[] args = new String[0];
 	
-	public YarnCloudAppServiceApplication(String applicationVersion) {
-		appProperties.setProperty("spring.yarn.applicationVersion", applicationVersion);		
-	}
+	private YarnConfiguration yarnConfiguration;
+	private ApplicationYarnClient yarnClient;
+	private SpringYarnProperties springYarnProperties;
+	private RestTemplate restTemplate;
 
-	public void configFile(String configFileName, Properties configProperties) {
-		configFilesContents.put(configFileName, configProperties);
-	}
-	
-	public void setArgs(String[] args) {
-		this.args = args;
+	public YarnCloudAppServiceApplication(String applicationVersion, String configFileName,
+			Properties configFileProperties, String[] runArgs, ApplicationContextInitializer<?>... initializers) {
+		if (StringUtils.hasText(applicationVersion)) {
+			appProperties.setProperty("spring.yarn.applicationVersion", applicationVersion);			
+		}
+		if (StringUtils.hasText(configFileName) && configFileProperties != null) {
+			configFilesContents.put(configFileName, configFileProperties);			
+		}
+		if (runArgs != null) {
+			this.args = runArgs;
+		}
+		this.initializers = initializers;
 	}
 	
 	@Override
@@ -106,6 +114,15 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 		}
 		SpringYarnBootUtils.addConfigFilesContents(builder, configFilesContents);
 		context = builder.run(args);
+		yarnConfiguration = context.getBean(YarnSystemConstants.DEFAULT_ID_CONFIGURATION, YarnConfiguration.class);
+		YarnClient client = context.getBean(YarnClient.class);
+		if (client instanceof ApplicationYarnClient) {
+			yarnClient = ((ApplicationYarnClient)client);
+		} else {
+			throw new IllegalArgumentException("YarnClient need to be instanceof ApplicationYarnClient");
+		}
+		restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE, RestTemplate.class);
+		springYarnProperties = context.getBean(SpringYarnProperties.class);
 	}
 
 	@Override
@@ -119,11 +136,7 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 	public ApplicationContext getContext() {
 		return context;
 	}
-	
-	public void setInitializers(ApplicationContextInitializer<?>... initializers) {
-		this.initializers = initializers;
-	}
-	
+		
 	public Collection<CloudAppInfo> getPushedApplications() {
 		List<CloudAppInfo> apps = new ArrayList<CloudAppInfo>();
 		YarnConfiguration yarnConfiguration = context.getBean("yarnConfiguration", YarnConfiguration.class);
@@ -148,52 +161,30 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 
 	public Collection<CloudAppInstanceInfo> getSubmittedApplications() {
 		List<CloudAppInstanceInfo> appIds = new ArrayList<CloudAppInstanceInfo>();
-		YarnClient client = context.getBean(YarnClient.class);
-		for (ApplicationReport report : client.listRunningApplications("DATAFLOW")) {
+		for (ApplicationReport report : yarnClient.listRunningApplications("DATAFLOW")) {
 			appIds.add(new CloudAppInstanceInfo(report.getApplicationId().toString(), report.getName(), report.getOriginalTrackingUrl()));
 		}
 		return appIds;
 	}
 	
-	public void pushApplication() {
-		YarnClient client = context.getBean(YarnClient.class);
-		SpringYarnProperties syp = context.getBean(SpringYarnProperties.class);
-		String applicationdir = SpringYarnBootUtils.resolveApplicationdir(syp);
-		if (client instanceof ApplicationYarnClient) {
-			((ApplicationYarnClient)client).installApplication(new ApplicationDescriptor(applicationdir));
-		} else {
-			client.installApplication();
-		}		
+	public void pushApplication(String applicationName) {
+		yarnClient.installApplication(new ApplicationDescriptor(resolveApplicationdir(springYarnProperties, applicationName)));
 	}
 	
 	public String submitApplication(String applicationName) {
-		YarnClient client = context.getBean(YarnClient.class);
-		SpringYarnProperties syp = context.getBean(SpringYarnProperties.class);
-		String applicationdir = SpringYarnBootUtils.resolveApplicationdir(syp);
 		ApplicationId appId = null;
-		if (client instanceof ApplicationYarnClient) {
-			appId = ((ApplicationYarnClient)client).submitApplication(new ApplicationDescriptor(applicationdir, applicationName));
-		} else {
-			appId = client.submitApplication(false);
-		}	
+		appId = yarnClient.submitApplication(new ApplicationDescriptor(resolveApplicationdir(springYarnProperties, applicationName)));
 		return appId != null ? appId.toString() : null;
 	}
-	
+		
 	public Collection<String> getClustersInfo(ApplicationId applicationId) {
-		YarnClient client = context.getBean(YarnClient.class);
-		RestTemplate restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE,
-				RestTemplate.class);
-
-		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, client, applicationId);
+		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, yarnClient, applicationId);
 		YarnContainerClusterEndpointResource response = operations.getClusters();
 		return response.getClusters();
 	}
 	
 	public List<ClustersInfoReportData> getClusterInfo(ApplicationId applicationId, String clusterId) {
-		YarnClient client = context.getBean(YarnClient.class);
-		RestTemplate restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE,
-				RestTemplate.class);
-		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, client, applicationId);
+		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, yarnClient, applicationId);
 		ContainerClusterResource response = operations.clusterInfo(clusterId);
 		List<ClustersInfoReportData> data = new ArrayList<ClustersInfoReportData>();
 
@@ -212,12 +203,7 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 	public void createCluster(ApplicationId applicationId, String clusterId, String clusterDef,
 			String projectionType, Integer projectionDataAny, Map<String, Integer> hosts, Map<String, Integer> racks,
 			Map<String, Object> projectionDataProperties, Map<String, Object> extraProperties) {
-
-		YarnClient client = context.getBean(YarnClient.class);
-		RestTemplate restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE,
-				RestTemplate.class);
-		
-		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, client, applicationId);
+		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, yarnClient, applicationId);
 
 		ContainerClusterCreateRequest request = new ContainerClusterCreateRequest();
 		request.setClusterId(clusterId);
@@ -236,28 +222,19 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 	}
 
 	public void destroyCluster(ApplicationId applicationId, String clusterId) {
-		YarnClient client = context.getBean(YarnClient.class);
-		RestTemplate restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE,
-				RestTemplate.class);
-		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, client, applicationId);
+		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, yarnClient, applicationId);
 		operations.clusterDestroy(clusterId);		
 	}
 
 	public void startCluster(ApplicationId applicationId, String clusterId) {
-		YarnClient client = context.getBean(YarnClient.class);
-		RestTemplate restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE,
-				RestTemplate.class);
-		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, client, applicationId);
+		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, yarnClient, applicationId);
 		ContainerClusterModifyRequest request = new ContainerClusterModifyRequest();
 		request.setAction("start");
 		operations.clusterStart(clusterId, request);
 	}
 
 	public void stopCluster(ApplicationId applicationId, String clusterId) {
-		YarnClient client = context.getBean(YarnClient.class);
-		RestTemplate restTemplate = context.getBean(YarnSystemConstants.DEFAULT_ID_RESTTEMPLATE,
-				RestTemplate.class);
-		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, client, applicationId);
+		YarnContainerClusterOperations operations = buildClusterOperations(restTemplate, yarnClient, applicationId);
 		ContainerClusterModifyRequest request = new ContainerClusterModifyRequest();
 		request.setAction("stop");
 		operations.clusterStart(clusterId, request);
@@ -267,6 +244,12 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 		ApplicationReport report = client.getApplicationReport(applicationId);
 		String trackingUrl = report.getOriginalTrackingUrl();
 		return new YarnContainerClusterTemplate(trackingUrl + "/" + YarnContainerClusterEndpoint.ENDPOINT_ID, restTemplate);
+	}
+	
+	private static String resolveApplicationdir(SpringYarnProperties springYarnProperties, String applicationName) {
+		return springYarnProperties.getApplicationBaseDir().endsWith("/")
+				? springYarnProperties.getApplicationBaseDir()
+				: (springYarnProperties.getApplicationBaseDir() + "/") + applicationName + "/";		
 	}
 	
 	@Configuration

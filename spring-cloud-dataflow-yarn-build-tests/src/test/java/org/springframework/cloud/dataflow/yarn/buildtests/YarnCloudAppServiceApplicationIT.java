@@ -18,6 +18,7 @@ package org.springframework.cloud.dataflow.yarn.buildtests;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +34,8 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.junit.Test;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppService.CloudAppInfo;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppService.CloudAppInstanceInfo;
+import org.springframework.cloud.dataflow.yarn.buildtests.AbstractCliBootYarnClusterTests.HadoopConfigurationInjectingInitializer;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppServiceApplication;
 import org.springframework.data.hadoop.fs.FsShell;
 import org.springframework.yarn.client.YarnClient;
@@ -46,8 +49,8 @@ import org.springframework.yarn.test.junit.ApplicationInfo;
  * @author Janne Valkealahti
  *
  */
-//@MiniYarnClusterTest
-public class YarnCloudAppServiceApplicationIT/* extends AbstractCliBootYarnClusterTests*/ {
+@MiniYarnClusterTest
+public class YarnCloudAppServiceApplicationIT extends AbstractCliBootYarnClusterTests {
 
 	@Test
 	public void testFoo() {
@@ -102,23 +105,35 @@ public class YarnCloudAppServiceApplicationIT/* extends AbstractCliBootYarnClust
 //	}
 	
 	
-//	@Test
-//	public void testPushSubmit() throws Exception {		
-//		YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app");
+	@Test
+	public void testPushSubmit() throws Exception {
+		Properties instanceProperties = new Properties();
+		instanceProperties.setProperty("spring.yarn.applicationVersion", "app");
+		ApplicationContextInitializer<?>[] initializers = new ApplicationContextInitializer<?>[]{new HadoopConfigurationInjectingInitializer(getConfiguration())};
+		YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app", "application.properties", instanceProperties, null, initializers);
 //		app.setInitializers(new HadoopConfigurationInjectingInitializer(getConfiguration()));
-//		
-//		Properties instanceProperties = new Properties();
-//		instanceProperties.setProperty("spring.yarn.applicationVersion", "app");
 //		app.configFile("application.properties", instanceProperties);
+		
+		app.afterPropertiesSet();
+		setYarnClient(app.getContext().getBean(YarnClient.class));
+				
+		app.pushApplication("app");
+		
+		dumpFs();
+		
+		Collection<CloudAppInfo> pushedApplications = app.getPushedApplications();
+		assertThat(pushedApplications.size(), is(1));
+		
+		FsShell shell = new FsShell(getConfiguration());
+		Collection<FileStatus> lsr = shell.lsr("/app/app");
+		assertThat(lsr.size(), is(4));
+		Collection<String> texts = shell.text("/app/app/application.properties");
+		assertThat(texts.size(), is(1));
+		assertThat(texts.iterator().next(), containsString("spring.yarn.applicationVersion=app"));
+		
+
 //		
-//		app.afterPropertiesSet();
-//		setYarnClient(app.getContext().getBean(YarnClient.class));
-//				
-//		app.pushApplication();
-//		Collection<CloudAppInfo> pushedApplications = app.getPushedApplications();
-//		assertThat(pushedApplications.size(), is(1));
-//		
-//		dumpFs();
+		dumpFs();
 //		
 //		String appId = app.submitApplication("app");
 //		ApplicationId applicationId = ConverterUtils.toApplicationId(appId);
@@ -146,15 +161,15 @@ public class YarnCloudAppServiceApplicationIT/* extends AbstractCliBootYarnClust
 //		Thread.sleep(60000);
 //				
 //		app.destroy();
-//	}
+	}
 	
-//	private void dumpFs() {
-//		FsShell shell = new FsShell(getConfiguration());
-//		Collection<FileStatus> lsr = shell.lsr("/");
-//		for (FileStatus s : lsr) {
-//			System.out.println("XXXXXXXX " + s);
-//		}
-//	}
+	private void dumpFs() {
+		FsShell shell = new FsShell(getConfiguration());
+		Collection<FileStatus> lsr = shell.lsr("/");
+		for (FileStatus s : lsr) {
+			System.out.println("XXXXXXXX " + s);
+		}
+	}
 	
 //	@EnableAutoConfiguration
 //	public static class ClientApplication {

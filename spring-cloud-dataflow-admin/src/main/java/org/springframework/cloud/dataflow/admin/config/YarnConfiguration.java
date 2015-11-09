@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.dataflow.module.deployer.ModuleDeployer;
 import org.springframework.cloud.dataflow.module.deployer.yarn.DefaultYarnCloudAppService;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppService;
-import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppServiceApplication;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppStateMachine;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnModuleDeployer;
 import org.springframework.context.annotation.Bean;
@@ -61,13 +60,7 @@ public class YarnConfiguration {
 
 	@Bean
 	public YarnCloudAppService yarnCloudAppService() {
-		return new DefaultYarnCloudAppService(yarnCloudAppServiceApplication(), bootstrapName);
-	}
-
-	@Bean
-	public YarnCloudAppServiceApplication yarnCloudAppServiceApplication() {
-		YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app");
-		return app;
+		return new DefaultYarnCloudAppService(bootstrapName);
 	}
 	
 	@Bean
