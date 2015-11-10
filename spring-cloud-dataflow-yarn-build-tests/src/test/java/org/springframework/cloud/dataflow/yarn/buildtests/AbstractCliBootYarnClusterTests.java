@@ -16,6 +16,11 @@
 
 package org.springframework.cloud.dataflow.yarn.buildtests;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.conf.Configuration;
@@ -29,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.yarn.boot.SpringApplicationCallback;
@@ -36,6 +42,7 @@ import org.springframework.yarn.boot.SpringApplicationTemplate;
 import org.springframework.yarn.client.YarnClient;
 import org.springframework.yarn.test.context.YarnCluster;
 import org.springframework.yarn.test.junit.ApplicationInfo;
+import org.springframework.yarn.test.support.ContainerLogUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AbstractCliBootYarnClusterTests implements ApplicationContextAware {
@@ -160,6 +167,32 @@ public class AbstractCliBootYarnClusterTests implements ApplicationContextAware 
 		}, args);
 	}
 
+	protected File assertWaitFileContent(long timeout, TimeUnit unit, ApplicationId applicationId, String search) throws Exception {
+		File file = null;
+
+		long end = System.currentTimeMillis() + unit.toMillis(timeout);
+		done:
+		do {
+
+			List<Resource> resources = ContainerLogUtils.queryContainerLogs(
+					getYarnCluster(), applicationId);
+			for (Resource res : resources) {
+				File f = res.getFile();
+				String content = ContainerLogUtils.getFileContent(f);
+				if (content.contains(search)) {
+					file = f;
+					break done;
+				}
+			}
+			
+			Thread.sleep(1000);
+		} while (System.currentTimeMillis() < end);
+		
+		
+		assertThat(file, notNullValue());
+		return file;
+	}
+	
 	private ApplicationReport findApplicationReport(YarnClient client, ApplicationId applicationId) {
 		Assert.notNull(getYarnClient(), "Yarn client must be set");
 		for (ApplicationReport report : client.listApplications()) {

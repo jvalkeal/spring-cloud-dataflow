@@ -32,7 +32,6 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.dataflow.admin.config.YarnConfiguration;
 import org.springframework.cloud.dataflow.core.ArtifactCoordinates;
@@ -51,6 +50,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.util.StringUtils;
 import org.springframework.yarn.test.context.MiniYarnClusterTest;
 import org.springframework.yarn.test.support.ContainerLogUtils;
@@ -62,6 +63,7 @@ import org.springframework.yarn.test.support.ContainerLogUtils;
  *
  */
 @MiniYarnClusterTest
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class YarnModuleDeployerIT  extends AbstractCliBootYarnClusterTests {
 
 	private static final String GROUP_ID = "org.springframework.cloud.stream.module";
@@ -148,32 +150,6 @@ public class YarnModuleDeployerIT  extends AbstractCliBootYarnClusterTests {
 				assertThat("stderr with content: " + content, file.length(), is(0l));
 			}
 		}
-	}
-	
-	private File assertWaitFileContent(long timeout, TimeUnit unit, ApplicationId applicationId, String search) throws Exception {
-		File file = null;
-
-		long end = System.currentTimeMillis() + unit.toMillis(timeout);
-		done:
-		do {
-
-			List<Resource> resources = ContainerLogUtils.queryContainerLogs(
-					getYarnCluster(), applicationId);
-			for (Resource res : resources) {
-				File f = res.getFile();
-				String content = ContainerLogUtils.getFileContent(f);
-				if (content.contains(search)) {
-					file = f;
-					break done;
-				}
-			}
-			
-			Thread.sleep(1000);
-		} while (System.currentTimeMillis() < end);
-		
-		
-		assertThat(file, notNullValue());
-		return file;
 	}
 	
 	private ApplicationId assertWaitApp(long timeout, TimeUnit unit, YarnCloudAppService yarnCloudAppService) throws Exception {

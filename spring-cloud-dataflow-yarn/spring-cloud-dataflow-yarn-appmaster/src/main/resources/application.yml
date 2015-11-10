@@ -28,6 +28,7 @@ spring:
               virtualCores: 1
             launchcontext:
               locality: false
+              xarchiveFile: spring-cloud-dataflow-yarn-container-${spring.cloud.dataflow.yarn.version}.jar
               archiveFile: spring-cloud-dataflow-yarn-container-@project.version@.jar
     endpoints:
       containercluster:

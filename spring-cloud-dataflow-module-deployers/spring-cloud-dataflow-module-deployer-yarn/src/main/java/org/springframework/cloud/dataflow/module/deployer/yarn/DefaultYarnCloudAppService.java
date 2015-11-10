@@ -22,36 +22,37 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.util.StringUtils;
 import org.springframework.yarn.support.console.ContainerClusterReport.ClustersInfoReportData;
 
 /**
- * Default implementation of {@link YarnCloudAppService} which talks to
- * rest api's exposed by specific yarn controlling container clusters.
+ * Default implementation of {@link YarnCloudAppService} which talks to rest
+ * api's exposed by specific yarn controlling container clusters.
  *
  * @author Janne Valkealahti
  * @author Mark Fisher
  */
 public class DefaultYarnCloudAppService implements YarnCloudAppService, InitializingBean {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultYarnCloudAppService.class);
 	private final ApplicationContextInitializer<?>[] initializers;
 	private final String bootstrapName;
 	private final Map<String, YarnCloudAppServiceApplication> appCache = new HashMap<String, YarnCloudAppServiceApplication>();
 
-	public DefaultYarnCloudAppService(String bootstrapName, ApplicationContextInitializer<?>... initializers) {
+	public DefaultYarnCloudAppService(String bootstrapName) {
+		this(bootstrapName, null);
+	}
+	
+	public DefaultYarnCloudAppService(String bootstrapName, ApplicationContextInitializer<?>[] initializers) {
 		this.bootstrapName = bootstrapName;
 		this.initializers = initializers;
 	}
-	
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 	}
-		
+
 	@Override
 	public Collection<CloudAppInfo> getApplications() {
 		return getApp(null).getPushedApplications();
@@ -75,15 +76,16 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 	@Override
 	public void createCluster(String yarnApplicationId, String clusterId, int count, String module,
 			Map<String, String> definitionParameters) {
-		
+
 		Map<String, Object> extraProperties = new HashMap<String, Object>();
-		extraProperties.put("containerModules", module);		
-		
+		extraProperties.put("containerModules", module);
+
 		int i = 0;
 		for (Map.Entry<String, String> entry : definitionParameters.entrySet()) {
 			extraProperties.put("containerArg" + i++, entry.getKey() + "=" + entry.getValue());
 		}
-		getApp(null).createCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId, "module-template", "default", 1, null, null, null, extraProperties);
+		getApp(null).createCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId, "module-template",
+				"default", 1, null, null, null, extraProperties);
 	}
 
 	@Override
@@ -119,28 +121,30 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 
 	private Map<String, String> getInstanceClustersStates(String yarnApplicationId, String clusterId) {
 		HashMap<String, String> states = new HashMap<String, String>();
-		List<ClustersInfoReportData> clusterInfo = getApp(null).getClusterInfo(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		List<ClustersInfoReportData> clusterInfo = getApp(null)
+				.getClusterInfo(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 		if (clusterInfo.size() == 1) {
-			states.put(clusterId, clusterInfo.get(0).getState());			
+			states.put(clusterId, clusterInfo.get(0).getState());
 		}
 		return states;
 	}
-	
+
 	private synchronized YarnCloudAppServiceApplication getApp(String appVersion) {
 		YarnCloudAppServiceApplication app = appCache.get(appVersion);
 		if (app == null) {
-			
+
 			Properties configFileProperties = new Properties();
 			if (StringUtils.hasText(appVersion)) {
-				configFileProperties.setProperty("spring.yarn.applicationVersion", appVersion);				
+				configFileProperties.setProperty("spring.yarn.applicationVersion", appVersion);
 			}
-			
+
 			String[] runArgs = null;
 			if (StringUtils.hasText(bootstrapName)) {
 				runArgs = new String[] { "--spring.config.name=" + bootstrapName };
 			}
-			
-			app = new YarnCloudAppServiceApplication(appVersion, "application.properties", configFileProperties, runArgs, initializers);
+
+			app = new YarnCloudAppServiceApplication(appVersion, "application.properties", configFileProperties,
+					runArgs, initializers);
 			try {
 				app.afterPropertiesSet();
 			} catch (Exception e) {

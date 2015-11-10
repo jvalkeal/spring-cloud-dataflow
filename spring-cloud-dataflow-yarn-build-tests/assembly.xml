@@ -17,6 +17,8 @@
 			</includes>
 			<binaries>
 				<unpack>false</unpack>
+				<includeDependencies>false</includeDependencies>
+				<!--<outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>-->
 			</binaries>
 		</moduleSet>
 	</moduleSets>
