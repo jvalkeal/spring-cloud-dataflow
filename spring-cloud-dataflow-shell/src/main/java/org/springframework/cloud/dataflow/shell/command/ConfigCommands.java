@@ -19,15 +19,25 @@ package org.springframework.cloud.dataflow.shell.command;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.dataflow.rest.client.DataFlowServerException;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
+import org.springframework.cloud.dataflow.rest.client.VndErrorResponseErrorHandler;
 import org.springframework.cloud.dataflow.shell.config.DataFlowShell;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Configuration commands for the Shell.
@@ -35,15 +45,23 @@ import org.springframework.stereotype.Component;
  * @author Gunnar Hillert
  * @author Marius Bogoevici
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 @Component
+@Configuration
+@EnableHypermediaSupport(type = HypermediaType.HAL)
 public class ConfigCommands implements CommandMarker, InitializingBean {
+
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private CommandLine commandLine;
 
 	@Autowired
 	private DataFlowShell shell;
+
+	@Autowired
+	private RestTemplate restTemplate;
 
 	public static final String DEFAULT_SCHEME = "http";
 
@@ -60,13 +78,26 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 					unspecifiedDefaultValue = DEFAULT_TARGET) String targetUriString) {
 		try {
 			URI baseURI = URI.create(targetUriString);
-			this.shell.setDataFlowOperations(new DataFlowTemplate(baseURI));
+			this.shell.setDataFlowOperations(new DataFlowTemplate(baseURI, this.restTemplate));
 			return(String.format("Successfully targeted %s", targetUriString));
 		}
 		catch (Exception e) {
 			this.shell.setDataFlowOperations(null);
-			return(String.format("Unable to contact Data Flow Admin at '%s'.",
-							targetUriString));
+			if (e instanceof DataFlowServerException) {
+				String message = String.format("Unable to parse admin response: %s - at URI '%s'.", e.getMessage(),
+						targetUriString);
+				if (logger.isDebugEnabled()) {
+					logger.debug(message, e);
+				}
+				else {
+					logger.warn(message);
+				}
+				return message;
+			}
+			else {
+				return(String.format("Unable to contact Data Flow Admin at '%s': '%s'.",
+								targetUriString, e.toString()));
+			}
 		}
 	}
 
@@ -98,6 +129,13 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 			}
 		}
 		return new URI(DEFAULT_SCHEME, null, host, port, null, null, null);
+	}
+
+	@Bean
+	public static RestTemplate restTemplate() {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
+		return restTemplate;
 	}
 
 }

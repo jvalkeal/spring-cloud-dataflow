@@ -93,13 +93,16 @@ public class ArtifactRegistryPopulator {
 		populateDefault("groovy-filter", processor);
 		populateDefault("groovy-transform", processor);
 		populateDefault("transform", processor);
+		populateDefault("cassandra", sink);
 		populateDefault("counter", sink);
 		populateDefault("file", sink);
 		populateDefault("ftp", sink);
 		populateDefault("gemfire", sink);
 		populateDefault("hdfs", sink);
+		populateDefault("jdbc", sink);
 		populateDefault("log", sink);
 		populateDefault("redis", sink);
+		populateDefault("websocket", sink);
 		populateDefault("timestamp", task);
 	}
 
