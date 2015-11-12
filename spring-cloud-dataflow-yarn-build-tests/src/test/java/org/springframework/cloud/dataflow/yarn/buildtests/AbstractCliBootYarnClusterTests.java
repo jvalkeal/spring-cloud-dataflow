@@ -27,6 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -34,24 +35,40 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.yarn.boot.SpringApplicationCallback;
 import org.springframework.yarn.boot.SpringApplicationTemplate;
 import org.springframework.yarn.client.YarnClient;
+import org.springframework.yarn.test.context.MiniYarnClusterTest;
 import org.springframework.yarn.test.context.YarnCluster;
 import org.springframework.yarn.test.junit.ApplicationInfo;
 import org.springframework.yarn.test.support.ContainerLogUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-public class AbstractCliBootYarnClusterTests implements ApplicationContextAware {
+@MiniYarnClusterTest
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@TestPropertySource("file:target/spring-cloud-dataflow-yarn-build-tests/test.properties")
+public class AbstractCliBootYarnClusterTests implements ApplicationContextAware, EnvironmentAware {
 
 	private ApplicationContext applicationContext;
+	private Environment environment;
 	private Configuration configuration;
 	private YarnCluster yarnCluster;
 	private YarnClient yarnClient;
-
+	private String projectVersion;
+	
+	@Before
+	public void setup() {
+		projectVersion = getEnvironment().getProperty("projectVersion");
+	}
+	
 	@Override
 	public final void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
@@ -66,9 +83,18 @@ public class AbstractCliBootYarnClusterTests implements ApplicationContextAware 
 	public void setYarnCluster(YarnCluster yarnCluster) {
 		this.yarnCluster = yarnCluster;
 	}
+	
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
 
 	public ApplicationContext getApplicationContext() {
 		return applicationContext;
+	}
+	
+	public Environment getEnvironment() {
+		return environment;
 	}
 
 	public Configuration getConfiguration() {
@@ -85,6 +111,10 @@ public class AbstractCliBootYarnClusterTests implements ApplicationContextAware 
 	
 	public YarnCluster getYarnCluster() {
 		return yarnCluster;
+	}
+	
+	public String getProjectVersion() {
+		return projectVersion;
 	}
 
 	protected ApplicationInfo submitApplicationAndWait(Object source, String[] args) throws Exception {

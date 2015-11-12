@@ -41,6 +41,9 @@ public class YarnConfiguration {
 
 	@Value("${spring.cloud.bootstrap.name:admin}")
 	private String bootstrapName;
+	
+	@Value("${spring.cloud.dataflow.yarn.version}")
+	private String dataflowVersion;
 
 	@Bean
 	public ModuleDeployer processModuleDeployer() throws Exception {
@@ -60,7 +63,7 @@ public class YarnConfiguration {
 
 	@Bean
 	public YarnCloudAppService yarnCloudAppService() {
-		return new DefaultYarnCloudAppService(bootstrapName);
+		return new DefaultYarnCloudAppService(bootstrapName, dataflowVersion);
 	}
 	
 	@Bean

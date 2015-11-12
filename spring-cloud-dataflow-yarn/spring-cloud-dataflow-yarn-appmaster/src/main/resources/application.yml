@@ -11,10 +11,8 @@ spring:
     fsUri: hdfs://localhost:8020
     resourceManagerHost: localhost
   yarn:
-    appType: BOOT
     appName: spring-cloud-dataflow-yarn-app
-    applicationBaseDir: /app/
-    applicationDir: /app/spring-cloud-dataflow-yarn-app/
+    applicationBaseDir: /dataflow/apps/
     appmaster:
       appmasterClass: org.springframework.cloud.dataflow.yarn.appmaster.DataFlowAppmaster
       keepContextAlive: true
@@ -28,8 +26,7 @@ spring:
               virtualCores: 1
             launchcontext:
               locality: false
-              xarchiveFile: spring-cloud-dataflow-yarn-container-${spring.cloud.dataflow.yarn.version}.jar
-              archiveFile: spring-cloud-dataflow-yarn-container-@project.version@.jar
+              archiveFile: spring-cloud-dataflow-yarn-container-${spring.cloud.dataflow.yarn.version}.jar
     endpoints:
       containercluster:
         enabled: true

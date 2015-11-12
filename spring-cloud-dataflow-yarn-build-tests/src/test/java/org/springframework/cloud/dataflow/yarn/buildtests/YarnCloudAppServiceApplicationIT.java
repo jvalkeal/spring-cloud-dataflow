@@ -33,10 +33,7 @@ import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppServi
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppService.CloudAppInstanceInfo;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnCloudAppServiceApplication;
 import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.yarn.client.YarnClient;
-import org.springframework.yarn.test.context.MiniYarnClusterTest;
 import org.springframework.yarn.test.junit.ApplicationInfo;
 
 /**
@@ -45,17 +42,18 @@ import org.springframework.yarn.test.junit.ApplicationInfo;
  * @author Janne Valkealahti
  *
  */
-@MiniYarnClusterTest
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class YarnCloudAppServiceApplicationIT extends AbstractCliBootYarnClusterTests {
 
 	@Test
-	public void testStream() throws Exception {		
+	public void testStream() throws Exception {
+//		String projectVersion = getEnvironment().getProperty("projectVersion");
 		Properties instanceProperties = new Properties();
 		instanceProperties.setProperty("spring.yarn.applicationVersion", "app");
-		instanceProperties.setProperty("spring.cloud.dataflow.yarn.version", "1.0.0.BUILD-SNAPSHOT");
-		ApplicationContextInitializer<?>[] initializers = new ApplicationContextInitializer<?>[]{new HadoopConfigurationInjectingInitializer(getConfiguration())};
-		YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app", "application.properties", instanceProperties, null, initializers);
+		instanceProperties.setProperty("spring.cloud.dataflow.yarn.version", getProjectVersion());
+		ApplicationContextInitializer<?>[] initializers = new ApplicationContextInitializer<?>[] {
+				new HadoopConfigurationInjectingInitializer(getConfiguration()) };
+		YarnCloudAppServiceApplication app = new YarnCloudAppServiceApplication("app", getProjectVersion(),
+				"application.properties", instanceProperties, null, initializers);
 		
 		app.afterPropertiesSet();
 		setYarnClient(app.getContext().getBean(YarnClient.class));

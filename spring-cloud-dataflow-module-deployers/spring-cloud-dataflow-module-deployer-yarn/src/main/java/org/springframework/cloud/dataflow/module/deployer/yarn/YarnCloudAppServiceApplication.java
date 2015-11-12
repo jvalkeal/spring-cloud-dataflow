@@ -88,10 +88,13 @@ public class YarnCloudAppServiceApplication implements InitializingBean, Disposa
 	private SpringYarnProperties springYarnProperties;
 	private RestTemplate restTemplate;
 
-	public YarnCloudAppServiceApplication(String applicationVersion, String configFileName,
+	public YarnCloudAppServiceApplication(String applicationVersion, String dataflowVersion, String configFileName,
 			Properties configFileProperties, String[] runArgs, ApplicationContextInitializer<?>... initializers) {
 		if (StringUtils.hasText(applicationVersion)) {
 			appProperties.setProperty("spring.yarn.applicationVersion", applicationVersion);
+		}
+		if (StringUtils.hasText(dataflowVersion)) {
+			appProperties.setProperty("spring.cloud.dataflow.yarn.version", dataflowVersion);			
 		}
 		if (StringUtils.hasText(configFileName) && configFileProperties != null) {
 			configFilesContents.put(configFileName, configFileProperties);

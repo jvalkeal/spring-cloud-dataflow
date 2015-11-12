@@ -33,6 +33,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.dataflow.admin.config.YarnConfiguration;
 import org.springframework.cloud.dataflow.core.ArtifactCoordinates;
 import org.springframework.cloud.dataflow.core.ModuleDefinition;
@@ -62,9 +63,9 @@ import org.springframework.yarn.test.support.ContainerLogUtils;
  * @author Janne Valkealahti
  *
  */
-@MiniYarnClusterTest
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class YarnModuleDeployerIT  extends AbstractCliBootYarnClusterTests {
+//@MiniYarnClusterTest
+//@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+public class YarnModuleDeployerIT extends AbstractCliBootYarnClusterTests {
 
 	private static final String GROUP_ID = "org.springframework.cloud.stream.module";
 	private static final String VERSION = "1.0.0.BUILD-SNAPSHOT";
@@ -180,12 +181,15 @@ public class YarnModuleDeployerIT  extends AbstractCliBootYarnClusterTests {
 		@Autowired
 		private org.apache.hadoop.conf.Configuration configuration;
 
+		@Value("${spring.cloud.dataflow.yarn.version}")
+		private String dataflowVersion;
+		
 		@Override
 		@Bean
 		public YarnCloudAppService yarnCloudAppService() {
 			ApplicationContextInitializer<?>[] initializers = new ApplicationContextInitializer<?>[] {
 					new HadoopConfigurationInjectingInitializer(configuration) };
-			return new DefaultYarnCloudAppService(null, initializers);
+			return new DefaultYarnCloudAppService(null, dataflowVersion, initializers);
 		}
 
 	}

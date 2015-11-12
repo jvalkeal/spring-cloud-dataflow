@@ -38,14 +38,16 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 
 	private final ApplicationContextInitializer<?>[] initializers;
 	private final String bootstrapName;
+	private final String dataflowVersion;
 	private final Map<String, YarnCloudAppServiceApplication> appCache = new HashMap<String, YarnCloudAppServiceApplication>();
 
-	public DefaultYarnCloudAppService(String bootstrapName) {
-		this(bootstrapName, null);
+	public DefaultYarnCloudAppService(String bootstrapName, String dataflowVersion) {
+		this(bootstrapName, dataflowVersion, null);
 	}
 	
-	public DefaultYarnCloudAppService(String bootstrapName, ApplicationContextInitializer<?>[] initializers) {
+	public DefaultYarnCloudAppService(String bootstrapName, String dataflowVersion, ApplicationContextInitializer<?>[] initializers) {
 		this.bootstrapName = bootstrapName;
+		this.dataflowVersion = dataflowVersion;
 		this.initializers = initializers;
 	}
 
@@ -55,22 +57,22 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 
 	@Override
 	public Collection<CloudAppInfo> getApplications() {
-		return getApp(null).getPushedApplications();
+		return getApp(null, null).getPushedApplications();
 	}
 
 	@Override
 	public Collection<CloudAppInstanceInfo> getInstances() {
-		return getApp(null).getSubmittedApplications();
+		return getApp(null, null).getSubmittedApplications();
 	}
 
 	@Override
 	public void pushApplication(String appVersion) {
-		getApp(appVersion).pushApplication(appVersion);
+		getApp(appVersion, dataflowVersion).pushApplication(appVersion);
 	}
 
 	@Override
 	public String submitApplication(String appVersion) {
-		return getApp(appVersion).submitApplication(appVersion);
+		return getApp(appVersion, dataflowVersion).submitApplication(appVersion);
 	}
 
 	@Override
@@ -84,18 +86,18 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 		for (Map.Entry<String, String> entry : definitionParameters.entrySet()) {
 			extraProperties.put("containerArg" + i++, entry.getKey() + "=" + entry.getValue());
 		}
-		getApp(null).createCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId, "module-template",
+		getApp(null, null).createCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId, "module-template",
 				"default", 1, null, null, null, extraProperties);
 	}
 
 	@Override
 	public void startCluster(String yarnApplicationId, String clusterId) {
-		getApp(null).startCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		getApp(null, null).startCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 	}
 
 	@Override
 	public void stopCluster(String yarnApplicationId, String clusterId) {
-		getApp(null).stopCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		getApp(null, null).stopCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 	}
 
 	@Override
@@ -111,17 +113,17 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 
 	@Override
 	public Collection<String> getClusters(String yarnApplicationId) {
-		return getApp(null).getClustersInfo(ConverterUtils.toApplicationId(yarnApplicationId));
+		return getApp(null, null).getClustersInfo(ConverterUtils.toApplicationId(yarnApplicationId));
 	}
 
 	@Override
 	public void destroyCluster(String yarnApplicationId, String clusterId) {
-		getApp(null).destroyCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
+		getApp(null, null).destroyCluster(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 	}
 
 	private Map<String, String> getInstanceClustersStates(String yarnApplicationId, String clusterId) {
 		HashMap<String, String> states = new HashMap<String, String>();
-		List<ClustersInfoReportData> clusterInfo = getApp(null)
+		List<ClustersInfoReportData> clusterInfo = getApp(null, null)
 				.getClusterInfo(ConverterUtils.toApplicationId(yarnApplicationId), clusterId);
 		if (clusterInfo.size() == 1) {
 			states.put(clusterId, clusterInfo.get(0).getState());
@@ -129,7 +131,7 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 		return states;
 	}
 
-	private synchronized YarnCloudAppServiceApplication getApp(String appVersion) {
+	private synchronized YarnCloudAppServiceApplication getApp(String appVersion, String dataflowVersion) {
 		YarnCloudAppServiceApplication app = appCache.get(appVersion);
 		if (app == null) {
 
@@ -137,13 +139,16 @@ public class DefaultYarnCloudAppService implements YarnCloudAppService, Initiali
 			if (StringUtils.hasText(appVersion)) {
 				configFileProperties.setProperty("spring.yarn.applicationVersion", appVersion);
 			}
+			if (StringUtils.hasText(dataflowVersion)) {
+				configFileProperties.setProperty("spring.cloud.dataflow.yarn.version", dataflowVersion);				
+			}
 
 			String[] runArgs = null;
 			if (StringUtils.hasText(bootstrapName)) {
 				runArgs = new String[] { "--spring.config.name=" + bootstrapName };
 			}
 
-			app = new YarnCloudAppServiceApplication(appVersion, "application.properties", configFileProperties,
+			app = new YarnCloudAppServiceApplication(appVersion, dataflowVersion, "application.properties", configFileProperties,
 					runArgs, initializers);
 			try {
 				app.afterPropertiesSet();

@@ -11,13 +11,13 @@ spring:
   yarn:
     appType: DATAFLOW
     appName: spring-cloud-dataflow-yarn-app
-    applicationBaseDir: /app/
+    applicationBaseDir: /dataflow/apps/
     client:
       clientClass: org.springframework.yarn.client.DefaultApplicationYarnClient
       files:
-        - "file:${dataflow.yarn.app.appmaster.path:.}/spring-cloud-dataflow-yarn-appmaster-@project.version@.jar"
-        - "file:${dataflow.yarn.app.container.path:.}/spring-cloud-dataflow-yarn-container-@project.version@.jar"
+        - "file:${dataflow.yarn.app.appmaster.path:.}/spring-cloud-dataflow-yarn-appmaster-*.jar"
+        - "file:${dataflow.yarn.app.container.path:.}/spring-cloud-dataflow-yarn-container-*.jar"
       launchcontext:
-        archiveFile: spring-cloud-dataflow-yarn-appmaster-@project.version@.jar
+        archiveFile: spring-cloud-dataflow-yarn-appmaster-${spring.cloud.dataflow.yarn.version}.jar
       resource:
         memory: 1g
