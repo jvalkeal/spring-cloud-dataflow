@@ -46,7 +46,6 @@ public class YarnCloudAppServiceApplicationIT extends AbstractCliBootYarnCluster
 
 	@Test
 	public void testStream() throws Exception {
-//		String projectVersion = getEnvironment().getProperty("projectVersion");
 		Properties instanceProperties = new Properties();
 		instanceProperties.setProperty("spring.yarn.applicationVersion", "app");
 		instanceProperties.setProperty("spring.cloud.dataflow.yarn.version", getProjectVersion());

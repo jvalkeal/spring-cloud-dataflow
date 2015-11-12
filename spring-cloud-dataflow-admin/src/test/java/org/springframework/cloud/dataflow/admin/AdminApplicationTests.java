@@ -23,7 +23,6 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.cloud.dataflow.module.deployer.local.LocalModuleDeployer;
 import org.springframework.cloud.dataflow.module.deployer.yarn.YarnModuleDeployer;
 import org.springframework.cloud.lattice.LatticeProperties;
@@ -48,8 +47,9 @@ public class AdminApplicationTests {
 	@Test
 	public void testYarnProfile() {
 		SpringApplication app = new SpringApplication(AdminApplication.class);
-		ConfigurableApplicationContext context = app.run(new String[] { "--spring.profiles.active=yarn",
-				"--server.port=0" });
+		// need to give bootstrap name because otherwise admin-yarn.yml is not found
+		ConfigurableApplicationContext context = app.run(new String[] { "--spring.cloud.bootstrap.name=admin",
+				"--spring.profiles.active=yarn", "--server.port=0" });
 		assertThat(context.containsBean("processModuleDeployer"), is(true));
 		assertThat(context.getBean("processModuleDeployer"), instanceOf(YarnModuleDeployer.class));
 		context.close();

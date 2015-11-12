@@ -33,7 +33,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.dataflow.admin.config.YarnConfiguration;
 import org.springframework.cloud.dataflow.core.ArtifactCoordinates;
 import org.springframework.cloud.dataflow.core.ModuleDefinition;
@@ -50,11 +49,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.util.StringUtils;
-import org.springframework.yarn.test.context.MiniYarnClusterTest;
 import org.springframework.yarn.test.support.ContainerLogUtils;
 
 /**
@@ -63,8 +60,6 @@ import org.springframework.yarn.test.support.ContainerLogUtils;
  * @author Janne Valkealahti
  *
  */
-//@MiniYarnClusterTest
-//@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class YarnModuleDeployerIT extends AbstractCliBootYarnClusterTests {
 
 	private static final String GROUP_ID = "org.springframework.cloud.stream.module";
@@ -181,14 +176,15 @@ public class YarnModuleDeployerIT extends AbstractCliBootYarnClusterTests {
 		@Autowired
 		private org.apache.hadoop.conf.Configuration configuration;
 
-		@Value("${spring.cloud.dataflow.yarn.version}")
-		private String dataflowVersion;
+		@Autowired
+		private Environment environment;
 		
 		@Override
 		@Bean
 		public YarnCloudAppService yarnCloudAppService() {
 			ApplicationContextInitializer<?>[] initializers = new ApplicationContextInitializer<?>[] {
 					new HadoopConfigurationInjectingInitializer(configuration) };
+			String dataflowVersion = environment.getProperty("projectVersion");
 			return new DefaultYarnCloudAppService(null, dataflowVersion, initializers);
 		}
 

@@ -1,4 +1,8 @@
 spring:
+  cloud:
+    dataflow:
+      yarn:
+        version: "@project.version@"
   hadoop:
     fsUri: hdfs://localhost:8020
     resourceManagerHost: localhost

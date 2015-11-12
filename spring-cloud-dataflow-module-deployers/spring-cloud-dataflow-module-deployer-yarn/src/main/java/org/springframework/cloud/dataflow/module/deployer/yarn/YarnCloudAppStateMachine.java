@@ -41,10 +41,8 @@ import org.springframework.util.StringUtils;
 public class YarnCloudAppStateMachine {
 
 	static final String VAR_APP_VERSION = "appVersion";
-	static final String VAR_DATAFLOW_VERSION = "dataflowVersion";
 	static final String VAR_APPLICATION_ID = "applicationId";
 	static final String HEADER_APP_VERSION = "appVersion";
-	static final String HEADER_DATAFLOW_VERSION = "dataflowVersion";
 	static final String HEADER_CLUSTER_ID = "clusterId";
 	static final String HEADER_COUNT = "count";
 	static final String HEADER_MODULE = "module";
