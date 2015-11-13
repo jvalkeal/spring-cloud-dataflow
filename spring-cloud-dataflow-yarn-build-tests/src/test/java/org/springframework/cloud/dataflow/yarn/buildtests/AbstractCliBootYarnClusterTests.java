@@ -17,13 +17,19 @@
 package org.springframework.cloud.dataflow.yarn.buildtests;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -222,7 +228,33 @@ public class AbstractCliBootYarnClusterTests implements ApplicationContextAware,
 		assertThat(file, notNullValue());
 		return file;
 	}
+
+	protected String dumpFs() throws IOException {
+		StringBuilder buf = new StringBuilder();
+		FileSystem fs = FileSystem.get(getConfiguration());
+		RemoteIterator<LocatedFileStatus> files = fs.listFiles(new Path("/"), true);
+		while (files.hasNext()) {
+			buf.append(files.next().toString());
+			buf.append("\n");
+		}
+		return buf.toString();
+	}
 	
+	protected void waitHdfsFile(String path, long timeout, TimeUnit unit) throws Exception {
+		Path p = new Path(path);
+		FileSystem fs = FileSystem.get(getConfiguration());
+		long end = System.currentTimeMillis() + unit.toMillis(timeout);
+		boolean found = false;
+		do {
+			if (fs.exists(p)) {
+				found = true;
+				break;
+			}
+			Thread.sleep(1000);
+		} while (System.currentTimeMillis() < end);
+		assertThat(found, is(true));		
+	}
+		
 	private ApplicationReport findApplicationReport(YarnClient client, ApplicationId applicationId) {
 		Assert.notNull(getYarnClient(), "Yarn client must be set");
 		for (ApplicationReport report : client.listApplications()) {

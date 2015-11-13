@@ -39,6 +39,10 @@ import org.springframework.yarn.test.junit.ApplicationInfo;
 /**
  * Integration tests for {@link YarnCloudAppServiceApplication}.
  * 
+ * Tests can be run in sts if project is build first. Build
+ * prepares needed yarn files in expected paths.
+ * $ mvn clean package -DskipTests
+ * 
  * @author Janne Valkealahti
  *
  */
@@ -91,5 +95,5 @@ public class YarnCloudAppServiceApplicationIT extends AbstractCliBootYarnCluster
 		
 		app.destroy();
 	}
-	
+
 }

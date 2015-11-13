@@ -57,6 +57,10 @@ import org.springframework.yarn.test.support.ContainerLogUtils;
 /**
  * Integration tests for {@link YarnCloudAppServiceApplication}.
  * 
+ * Tests can be run in sts if project is build first. Build
+ * prepares needed yarn files in expected paths.
+ * $ mvn clean package -DskipTests
+ * 
  * @author Janne Valkealahti
  *
  */
@@ -84,7 +88,7 @@ public class YarnModuleDeployerIT extends AbstractCliBootYarnClusterTests {
 	}
 	
 	@Test
-	public void testSimpleDeployLifecycle() throws Exception {
+	public void testStreamTimeLog() throws Exception {
 		assertThat(context.containsBean("processModuleDeployer"), is(true));
 		assertThat(context.getBean("processModuleDeployer"), instanceOf(YarnModuleDeployer.class));
 		ModuleDeployer deployer = context.getBean("processModuleDeployer", ModuleDeployer.class);
@@ -127,6 +131,75 @@ public class YarnModuleDeployerIT extends AbstractCliBootYarnClusterTests {
 		
 		deployer.undeploy(logId);
 		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped inbound.ticktock.0");
+		
+		Collection<CloudAppInstanceInfo> instances = yarnCloudAppService.getInstances();
+		assertThat(instances.size(), is(1));
+		
+		List<Resource> resources = ContainerLogUtils.queryContainerLogs(
+				getYarnCluster(), applicationId);
+		
+		assertThat(resources, notNullValue());
+		assertThat(resources.size(), is(6));
+		
+		for (Resource res : resources) {
+			File file = res.getFile();
+			String content = ContainerLogUtils.getFileContent(file);
+			if (file.getName().endsWith("stdout")) {
+				assertThat(file.length(), greaterThan(0l));
+			} else if (file.getName().endsWith("stderr")) {
+				assertThat("stderr with content: " + content, file.length(), is(0l));
+			}
+		}
+	}
+
+	@Test
+	public void testStreamTimeHdfs() throws Exception {
+		ModuleDeployer deployer = context.getBean("processModuleDeployer", ModuleDeployer.class);
+		YarnCloudAppService yarnCloudAppService = context.getBean(YarnCloudAppService.class);
+		String fsUri = getConfiguration().get("fs.defaultFS");
+			
+		ModuleDefinition timeDefinition = new ModuleDefinition.Builder()
+				.setGroup("timehdfs")
+				.setName("time")
+				.setParameter("spring.cloud.stream.bindings.output", "timehdfs.0")
+				.build();
+		ModuleDefinition hdfsDefinition = new ModuleDefinition.Builder()
+				.setGroup("timehdfs")
+				.setName("hdfs")
+				.setParameter("spring.cloud.stream.bindings.input", "timehdfs.0")
+				.setParameter("spring.hadoop.fsUri", fsUri)
+				.build();
+		ArtifactCoordinates timeCoordinates = new ArtifactCoordinates.Builder()
+				.setGroupId(GROUP_ID)
+				.setArtifactId("time-source")
+				.setVersion(VERSION)
+				.setClassifier("exec")
+				.build();
+		ArtifactCoordinates hdfsCoordinates = new ArtifactCoordinates.Builder()
+				.setGroupId(GROUP_ID)
+				.setArtifactId("hdfs-sink")
+				.setVersion(VERSION)
+				.setClassifier("exec")
+				.build();
+		ModuleDeploymentRequest time = new ModuleDeploymentRequest(timeDefinition, timeCoordinates);
+		ModuleDeploymentRequest hdfs = new ModuleDeploymentRequest(hdfsDefinition, hdfsCoordinates);
+	
+		ModuleDeploymentId timeId = deployer.deploy(time);
+		ApplicationId applicationId = assertWaitApp(2, TimeUnit.MINUTES, yarnCloudAppService);
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "Started TimeSourceApplication");
+		
+		ModuleDeploymentId hdfsId = deployer.deploy(hdfs);
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "Started HdfsSinkApplication");
+		
+		waitHdfsFile("/tmp/hdfs-sink/data-0.txt", 2, TimeUnit.MINUTES);
+		
+		deployer.undeploy(timeId);
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped outbound.timehdfs.0");
+		
+		deployer.undeploy(hdfsId);
+		// TODO: why "inbound.timehdfs.0" is not logged?
+		//assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped inbound.timehdfs.0");
+		assertWaitFileContent(2, TimeUnit.MINUTES, applicationId, "stopped hdfsSink.hdfsSink.serviceActivator");
 		
 		Collection<CloudAppInstanceInfo> instances = yarnCloudAppService.getInstances();
 		assertThat(instances.size(), is(1));
