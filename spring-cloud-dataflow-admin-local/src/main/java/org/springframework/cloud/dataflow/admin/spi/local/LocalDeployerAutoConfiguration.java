@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.dataflow.admin.EnableDataFlowServer;
 import org.springframework.cloud.dataflow.module.deployer.ModuleDeployer;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncher;
 import org.springframework.cloud.stream.module.launcher.ModuleLauncherConfiguration;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration
 @ConditionalOnClass(ModuleDeployer.class)
+@EnableDataFlowServer
 public class LocalDeployerAutoConfiguration {
 
 	static final String LOCAL_DEPLOYER_PREFIX = "deployer.local";

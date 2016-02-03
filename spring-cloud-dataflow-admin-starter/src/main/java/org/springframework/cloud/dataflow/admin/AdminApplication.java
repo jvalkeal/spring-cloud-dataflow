@@ -17,6 +17,7 @@
 package org.springframework.cloud.dataflow.admin;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -26,7 +27,8 @@ import org.springframework.context.annotation.Configuration;
  * @author Josh Long
  */
 @Configuration
-@EnableDataFlowServer
+//@EnableDataFlowServer
+@EnableAutoConfiguration
 public class AdminApplication {
 
 	public static void main(String[] args) {
