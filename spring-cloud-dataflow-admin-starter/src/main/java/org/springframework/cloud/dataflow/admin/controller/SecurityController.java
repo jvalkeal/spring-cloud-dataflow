@@ -18,7 +18,6 @@ package org.springframework.cloud.dataflow.admin.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/security/info")
-@EnableConfigurationProperties(SecurityProperties.class)
 public class SecurityController {
 
 	private final SecurityProperties securityProperties;

@@ -18,6 +18,7 @@ package org.springframework.cloud.dataflow.admin;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.OAuth2AutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -27,8 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Josh Long
  */
 @Configuration
-//@EnableDataFlowServer
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = OAuth2AutoConfiguration.class)
 public class AdminApplication {
 
 	public static void main(String[] args) {

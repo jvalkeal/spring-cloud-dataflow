@@ -25,15 +25,12 @@ import javax.sql.DataSource;
 
 import org.h2.tools.Server;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.repository.MetricRepository;
 import org.springframework.boot.actuate.metrics.repository.redis.RedisMetricRepository;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.security.oauth2.OAuth2AutoConfiguration;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.admin.completion.TapOnChannelExpansionStrategy;
@@ -88,7 +85,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 		StreamDefinitionController.class,
 		StreamDefinitionRepository.class
 })
-@EnableAutoConfiguration(exclude = OAuth2AutoConfiguration.class)
 public class AdminConfiguration {
 
 	protected static final org.slf4j.Logger logger = LoggerFactory.getLogger(AdminConfiguration.class);
