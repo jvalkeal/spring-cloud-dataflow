@@ -17,6 +17,7 @@
 package org.springframework.cloud.dataflow.shell.command;
 
 import static org.springframework.shell.table.BorderSpecification.TOP;
+import static org.springframework.shell.table.BorderStyle.air;
 import static org.springframework.shell.table.BorderStyle.fancy_light;
 import static org.springframework.shell.table.BorderStyle.fancy_light_quadruple_dash;
 import static org.springframework.shell.table.CellMatchers.column;
@@ -27,8 +28,10 @@ import static org.springframework.shell.table.SimpleVerticalAligner.middle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +62,7 @@ import org.springframework.util.Assert;
 public class RuntimeCommands implements CommandMarker {
 
 	private static final String LIST_APPS = "runtime apps";
-	
+
 	private final DataFlowShell dataFlowShell;
 
 	@Autowired
@@ -102,6 +105,7 @@ public class RuntimeCommands implements CommandMarker {
 		// In detailed mode, keep track of app vs instance lines, to use
 		// a different border style later.
 		List<Integer> splits = new ArrayList<>();
+		List<Integer> emptys = new ArrayList<>();
 		int line = 1;
 		// Optimise for the single app case, which is likely less resource intensive on the server
 		// than client side filtering
@@ -122,6 +126,12 @@ public class RuntimeCommands implements CommandMarker {
 					.addValue(appStatusResource.getInstances().getContent().size());
 			splits.add(line);
 			line++;
+			modelBuilder.addRow()
+					.addValue("")
+					.addValue("")
+					.addValue(appStatusResource.getAttributes());
+			emptys.add(line);
+			line++;
 			if (!summary) {
 				for (AppInstanceStatusResource appInstanceStatusResource : appStatusResource.getInstances()) {
 					modelBuilder.addRow()
@@ -136,8 +146,8 @@ public class RuntimeCommands implements CommandMarker {
 		TableModel model = modelBuilder.build();
 		final TableBuilder builder = new TableBuilder(model);
 		DataFlowTables.applyStyle(builder);
-		builder.on(column(0)).addAligner(middle)
-				.on(column(1)).addAligner(middle)
+		builder.on(column(0)).addAligner(center)
+				.on(column(1)).addAligner(center)
 				.on(column(1)).addAligner(center)
 				// This will match the "number of instances" cells only
 				.on(ofType(Integer.class)).addAligner(center);
@@ -147,6 +157,9 @@ public class RuntimeCommands implements CommandMarker {
 		for (int i = 2; i < model.getRowCount(); i++) {
 			if (splits.contains(i)) {
 				builder.paintBorder(fancy_light, TOP).fromRowColumn(i, 0).toRowColumn(i + 1, model.getColumnCount());
+			}
+			else if(emptys.contains(i)) {
+				builder.paintBorder(air, TOP).fromRowColumn(i, 0).toRowColumn(i + 1, model.getColumnCount());
 			}
 			else {
 				builder.paintBorder(fancy_light_quadruple_dash, TOP).fromRowColumn(i, 0).toRowColumn(i + 1, model.getColumnCount());

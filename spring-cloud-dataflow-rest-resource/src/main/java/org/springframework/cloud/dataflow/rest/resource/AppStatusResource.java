@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.dataflow.rest.resource;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.Resources;
@@ -34,14 +37,21 @@ public class AppStatusResource extends ResourceSupport {
 
 	private Resources<AppInstanceStatusResource> instances;
 
+	private Map<String, String> attributes;
+
 	@SuppressWarnings("unused")
 	private AppStatusResource() {
 		// Noarg constructor for serialization;
 	}
 
 	public AppStatusResource(String deploymentId, String state) {
+		this(deploymentId, state, null);
+	}
+
+	public AppStatusResource(String deploymentId, String state, Map<String, String> attributes) {
 		this.deploymentId = deploymentId;
 		this.state = state;
+		this.attributes = attributes == null ? Collections.<String, String>emptyMap() : attributes;
 	}
 
 	public String getDeploymentId() {
@@ -50,6 +60,10 @@ public class AppStatusResource extends ResourceSupport {
 
 	public String getState() {
 		return state;
+	}
+
+	public Map<String, String> getAttributes() {
+		return attributes;
 	}
 
 	public Resources<AppInstanceStatusResource> getInstances() {

@@ -141,7 +141,7 @@ public class RuntimeAppsController {
 
 		@Override
 		protected AppStatusResource instantiateResource(AppStatus entity) {
-			AppStatusResource resource = new AppStatusResource(entity.getDeploymentId(), entity.getState().name());
+			AppStatusResource resource = new AppStatusResource(entity.getDeploymentId(), entity.getState().name(), entity.getAttributes());
 			List<AppInstanceStatusResource> instanceStatusResources = new ArrayList<>();
 			InstanceAssembler instanceAssembler = new InstanceAssembler(entity);
 			List<AppInstanceStatus> instanceStatuses = new ArrayList<>(entity.getInstances().values());
