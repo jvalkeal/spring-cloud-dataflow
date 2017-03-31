@@ -106,16 +106,17 @@ public class MetricsController {
 
 		List<GroupedMetrics> metricsIn = metricStore.getMetrics();
 		List<GroupedMetrics> metricsOut = new ArrayList<>();
-		Map<String, String> uniqueAppIdToInstanceId = new HashMap<>();
+		Map<String, UniqueAppIdHolder> uniqueAppIdToInstanceId = new HashMap<>();
 
 		for (AppStatus as : statuses) {
+			String deploymentId = as.getDeploymentId();
 			for (Entry<String, AppInstanceStatus> e : as.getInstances().entrySet()) {
 				AppInstanceStatus value = e.getValue();
 				String instanceId = value.getId();
 				Map<String, String> attributes = value.getAttributes();
 				String uniqueAppId = attributes.get("uniqueAppId");
 				if (StringUtils.hasText(uniqueAppId)) {
-					uniqueAppIdToInstanceId.put(uniqueAppId, instanceId);
+					uniqueAppIdToInstanceId.put(uniqueAppId, new UniqueAppIdHolder(deploymentId, instanceId));
 				}
 			}
 		}
@@ -123,14 +124,13 @@ public class MetricsController {
 		for (GroupedMetrics gmIn : metricsIn) {
 			GroupedMetrics gmOut = new GroupedMetrics();
 			Set<ApplicationMetrics> instances = new HashSet<>();
-			String[] split = gmIn.getName().split("\\.");
-			gmOut.setName(split[0] + "." + split[1]);
 			for (ApplicationMetrics am : gmIn.getInstances()) {
 				String iname = am.getName();
 				String[] split2 = iname.split("\\.");
-				String instanceId = uniqueAppIdToInstanceId.get(split2[2]);
-				if (StringUtils.hasText(instanceId)) {
-					instances.add(new ApplicationMetrics(instanceId, am.getInstanceIndex(), am.getMetrics()));
+				UniqueAppIdHolder holder = uniqueAppIdToInstanceId.get(split2[2]);
+				if (holder != null) {
+					gmOut.setName(holder.deploymentId);
+					instances.add(new ApplicationMetrics(holder.instanceId, am.getInstanceIndex(), am.getMetrics()));
 				}
 			}
 			gmOut.setInstances(instances);
@@ -138,6 +138,15 @@ public class MetricsController {
 		}
 
 		return assembler.toResource(new PageImpl<>(metricsOut), statusAssembler);
+	}
+
+	private static class UniqueAppIdHolder {
+		String deploymentId;
+		String instanceId;
+		public UniqueAppIdHolder(String deploymentId, String instanceId) {
+			this.deploymentId = deploymentId;
+			this.instanceId = instanceId;
+		}
 	}
 
 	public static class AppMetricResource extends ResourceSupport {
