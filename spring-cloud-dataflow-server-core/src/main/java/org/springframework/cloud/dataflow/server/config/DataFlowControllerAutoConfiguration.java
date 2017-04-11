@@ -64,6 +64,7 @@ import org.springframework.cloud.dataflow.server.controller.UiController;
 import org.springframework.cloud.dataflow.server.controller.security.LoginController;
 import org.springframework.cloud.dataflow.server.controller.security.SecurityController;
 import org.springframework.cloud.dataflow.server.controller.support.MetricStore;
+import org.springframework.cloud.dataflow.server.controller.support.MetricsZuulFallbackProvider;
 import org.springframework.cloud.dataflow.server.repository.DeploymentIdRepository;
 import org.springframework.cloud.dataflow.server.repository.StreamDefinitionRepository;
 import org.springframework.cloud.dataflow.server.repository.TaskDefinitionRepository;
@@ -75,6 +76,7 @@ import org.springframework.cloud.deployer.resource.registry.UriRegistry;
 import org.springframework.cloud.deployer.resource.support.DelegatingResourceLoader;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
+import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -300,5 +302,16 @@ public class DataFlowControllerAutoConfiguration {
 
 	@ConfigurationProperties(prefix = "maven")
 	static class MavenConfigurationProperties extends MavenProperties {
+	}
+
+	@Configuration
+	@ConditionalOnProperty(name = "spring.cloud.dataflow.metrics.collector.url", matchIfMissing = false)
+	@EnableZuulProxy
+	public static class ZuulProxyConfiguration {
+
+		@Bean
+		public MetricsZuulFallbackProvider metricsZuulFallbackProvider() {
+			return new MetricsZuulFallbackProvider();
+		}
 	}
 }

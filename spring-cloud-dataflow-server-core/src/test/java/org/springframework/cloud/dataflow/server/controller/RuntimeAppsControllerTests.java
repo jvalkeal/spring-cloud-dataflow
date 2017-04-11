@@ -163,4 +163,9 @@ public class RuntimeAppsControllerTests {
 		assertThat(responseString.getContentAsString().contains("ticktock2.log"), is(false));
 		assertThat(responseString.getContentAsString().contains("ticktock2.time"), is(true));
 	}
+
+	@Test
+	public void zuulProxyDisabled() {
+		assertThat(wac.containsBean("zuulEndpoint"), is(false));
+	}
 }

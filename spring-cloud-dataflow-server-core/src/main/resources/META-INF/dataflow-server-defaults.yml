@@ -1,6 +1,17 @@
 management:
   security:
     roles: ADMIN
+zuul:
+  routes:
+    metrics:
+      path: /metrics/streams/**
+      xurl: ${spring.cloud.dataflow.metrics.collector.url:}
+ribbon:
+  eureka:
+    enabled: false
+metrics:
+  ribbon:
+    listOfServers: ${spring.cloud.dataflow.metrics.collector.url:}
 spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
@@ -13,6 +24,10 @@ spring:
         authorization:
           enabled: true
           rules:
+            # Metrics
+            
+            - GET    /metrics/**                     => hasRole('ROLE_VIEW')
+            
             # About
 
             - GET    /about                          => hasRole('ROLE_VIEW')
