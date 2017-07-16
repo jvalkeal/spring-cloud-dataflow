@@ -288,6 +288,8 @@ public abstract class AbstractRdbmsKeyValueRepository<D> implements PagingAndSor
 		}
 		String query = pagingQueryProvider.getPageQuery(pageable);
 		List<D> resultList = jdbcTemplate.query(query, queryParam, rowMapper);
-		return new PageImpl<>(resultList, pageable, totalCount);
+//		return new PageImpl<>(resultList, pageable, totalCount);
+		int filteredSize = pageable.getOffset() + resultList.size();
+		return new PageImpl<>(resultList, pageable, filteredSize);
 	}
 }
