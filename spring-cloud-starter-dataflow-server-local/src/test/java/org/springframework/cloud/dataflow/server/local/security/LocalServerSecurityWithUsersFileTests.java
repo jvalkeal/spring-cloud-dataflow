@@ -56,7 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Ilayaperumal Gopinathan
  */
 @RunWith(Parameterized.class)
-//@Ignore
+@Ignore
 public class LocalServerSecurityWithUsersFileTests {
 
 	private final static Logger logger = LoggerFactory.getLogger(LocalServerSecurityWithUsersFileTests.class);
