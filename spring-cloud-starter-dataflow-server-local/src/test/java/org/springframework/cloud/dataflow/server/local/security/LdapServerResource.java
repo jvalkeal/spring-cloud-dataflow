@@ -95,6 +95,9 @@ public class LdapServerResource extends ExternalResource {
 			System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
 			System.setProperty("javax.net.ssl.trustStore", temporaryTrustStoreFile.getAbsolutePath());
 			System.setProperty("javax.net.ssl.trustStoreType", "jks");
+			System.setProperty("javax.net.ssl.trustStoreType", "jks");
+			System.setProperty("javax.net.debug", "all");
+			System.setProperty("ssl.debug", "true");
 		}
 
 		apacheDSContainer.setPort(ldapPort);
