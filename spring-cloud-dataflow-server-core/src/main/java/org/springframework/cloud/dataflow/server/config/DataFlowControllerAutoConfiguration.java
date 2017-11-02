@@ -116,6 +116,7 @@ import org.springframework.scheduling.concurrent.ForkJoinPoolFactoryBean;
 @ConditionalOnBean({ EnableDataFlowServerConfiguration.Marker.class, AppDeployer.class, TaskLauncher.class })
 @EnableConfigurationProperties({ FeaturesProperties.class, VersionInfoProperties.class, MetricsProperties.class,
 	SkipperClientProperties.class})
+//@EnableConfigurationProperties({ FeaturesProperties.class, VersionInfoProperties.class, MetricsProperties.class })
 @ConditionalOnProperty(prefix = "dataflow.server", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableCircuitBreaker
 public class DataFlowControllerAutoConfiguration {
@@ -123,9 +124,15 @@ public class DataFlowControllerAutoConfiguration {
 	private static Log logger = LogFactory.getLog(DataFlowControllerAutoConfiguration.class);
 
 	@Configuration
-	@Import(SkipperClientConfiguration.class)
+//	@Import(SkipperClientConfiguration.class)
 	@ConditionalOnBean({StreamDefinitionRepository.class, StreamDeploymentRepository.class})
 	public static class SkipperConfiguration {
+
+		@Bean
+		public SkipperClient skipperClient(SkipperClientProperties skipperClientProperties) {
+			logger.info("Skipper URI = [" + skipperClientProperties.getUri() + "]");
+			return SkipperClient.create(skipperClientProperties.getUri());
+		}
 
 		@Bean
 		public SkipperStreamDeployer skipperStreamDeployer(SkipperClient skipperClient,
