@@ -130,15 +130,15 @@ public class DataFlowServerConfigurationTests {
 		assertFalse(context.containsBean("initH2TCPServer"));
 	}
 
-	@Test
-	public void testSkipperConfig() throws Exception {
-		EnvironmentTestUtils.addEnvironment(context, "spring.cloud.skipper.client.uri:http://fakehost:1234/api");
-		context.refresh();
-		SkipperClient skipperClient = context.getBean(SkipperClient.class);
-		Object baseUri = TestUtils.readField("baseUri", skipperClient);
-		assertNotNull(baseUri);
-		assertTrue(baseUri.equals("http://fakehost:1234/api"));
-	}
+//	@Test
+//	public void testSkipperConfig() throws Exception {
+//		EnvironmentTestUtils.addEnvironment(context, "spring.cloud.skipper.client.uri:http://fakehost:1234/api");
+//		context.refresh();
+//		SkipperClient skipperClient = context.getBean(SkipperClient.class);
+//		Object baseUri = TestUtils.readField("baseUri", skipperClient);
+//		assertNotNull(baseUri);
+//		assertTrue(baseUri.equals("http://fakehost:1234/api"));
+//	}
 
 	@EnableDataFlowServer
 	private static class TestConfiguration {
