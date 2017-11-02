@@ -147,11 +147,11 @@ public class DataFlowControllerAutoConfiguration {
 //			return restTemplate;
 //		}
 
-		@Bean
-		public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
-			restTemplateBuilder.build();
-			return "hello";
-		}
+//		@Bean
+//		public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
+//			restTemplateBuilder.build();
+//			return "hello";
+//		}
 
 		@Bean
 		public SkipperClient skipperClient(SkipperClientProperties properties/*, RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper*/) {
