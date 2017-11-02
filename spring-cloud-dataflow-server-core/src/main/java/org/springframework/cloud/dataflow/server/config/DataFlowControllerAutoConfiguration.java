@@ -124,7 +124,7 @@ public class DataFlowControllerAutoConfiguration {
 	private static Log logger = LogFactory.getLog(DataFlowControllerAutoConfiguration.class);
 
 	@Configuration
-//	@Import(SkipperClientConfiguration.class)
+	@Import(SkipperClientConfiguration.class)
 	@ConditionalOnBean({StreamDefinitionRepository.class, StreamDeploymentRepository.class})
 	public static class SkipperConfiguration {
 
