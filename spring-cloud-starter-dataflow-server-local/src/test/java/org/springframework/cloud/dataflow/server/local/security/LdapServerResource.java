@@ -86,6 +86,9 @@ public class LdapServerResource extends ExternalResource {
 			Assert.isTrue(temporaryKeyStoreFile.isFile(), "temporaryKeyStoreFile.isFile can not be null");
 			Assert.isTrue(temporaryTrustStoreFile.isFile(), "temporaryTrustStoreFile.isfile can not be null");
 
+			Assert.isTrue(temporaryKeyStoreFile.exists(), "temporaryKeyStoreFile.isFile must exist");
+			Assert.isTrue(temporaryTrustStoreFile.exists(), "temporaryTrustStoreFile.isfile must exist");
+
 			apacheDSContainer.setKeyStoreFile(temporaryKeyStoreFile);
 			apacheDSContainer.setKeyStorePassword(KEY_STORE_PASSWORD);
 
