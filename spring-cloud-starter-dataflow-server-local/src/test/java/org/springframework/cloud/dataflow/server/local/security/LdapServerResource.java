@@ -99,6 +99,7 @@ public class LdapServerResource extends ExternalResource {
 		workingDir = new File(temporaryFolder.getRoot(), UUID.randomUUID().toString());
 		apacheDSContainer.setWorkingDirectory(workingDir);
 		apacheDSContainer.start();
+		Thread.sleep(3000);
 		System.setProperty(LDAP_PORT_PROPERTY, Integer.toString(ldapPort));
 	}
 
