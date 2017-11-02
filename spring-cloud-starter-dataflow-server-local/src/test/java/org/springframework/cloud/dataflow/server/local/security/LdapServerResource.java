@@ -99,8 +99,10 @@ public class LdapServerResource extends ExternalResource {
 		workingDir = new File(temporaryFolder.getRoot(), UUID.randomUUID().toString());
 		apacheDSContainer.setWorkingDirectory(workingDir);
 		apacheDSContainer.start();
-		Thread.sleep(3000);
 		System.setProperty(LDAP_PORT_PROPERTY, Integer.toString(ldapPort));
+		System.out.println("XXX21 " + System.getProperty("javax.net.ssl.trustStorePassword"));
+		System.out.println("XXX22 " + System.getProperty("javax.net.ssl.trustStore"));
+		System.out.println("XXX23 " + System.getProperty("javax.net.ssl.trustStoreType"));
 	}
 
 	@Override
