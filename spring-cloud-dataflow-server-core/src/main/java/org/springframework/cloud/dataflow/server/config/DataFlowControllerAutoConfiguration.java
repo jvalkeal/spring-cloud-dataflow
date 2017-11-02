@@ -141,7 +141,7 @@ public class DataFlowControllerAutoConfiguration {
 //		}
 
 		@Bean
-		public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
+		public RestTemplate skipperClientRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
 			RestTemplate restTemplate = restTemplateBuilder
 					.errorHandler(new SkipperClientResponseErrorHandler(objectMapper)).build();
 			return restTemplate;
