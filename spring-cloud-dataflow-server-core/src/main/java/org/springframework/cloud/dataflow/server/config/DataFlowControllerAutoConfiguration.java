@@ -36,6 +36,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.common.security.AuthorizationProperties;
 import org.springframework.cloud.common.security.support.FileSecurityProperties;
@@ -89,9 +90,11 @@ import org.springframework.cloud.deployer.resource.registry.UriRegistry;
 import org.springframework.cloud.deployer.resource.support.DelegatingResourceLoader;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
+import org.springframework.cloud.skipper.client.DefaultSkipperClient;
 import org.springframework.cloud.skipper.client.SkipperClient;
 import org.springframework.cloud.skipper.client.SkipperClientConfiguration;
 import org.springframework.cloud.skipper.client.SkipperClientProperties;
+import org.springframework.cloud.skipper.client.SkipperClientResponseErrorHandler;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -100,6 +103,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.scheduling.concurrent.ForkJoinPoolFactoryBean;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Configuration for the Data Flow Server Controllers.
@@ -124,14 +130,26 @@ public class DataFlowControllerAutoConfiguration {
 	private static Log logger = LogFactory.getLog(DataFlowControllerAutoConfiguration.class);
 
 	@Configuration
-	@Import(SkipperClientConfiguration.class)
+//	@Import(SkipperClientConfiguration.class)
 	@ConditionalOnBean({StreamDefinitionRepository.class, StreamDeploymentRepository.class})
 	public static class SkipperConfiguration {
 
+//		@Bean
+//		public SkipperClient skipperClient(SkipperClientProperties skipperClientProperties) {
+//			logger.info("Skipper URI = [" + skipperClientProperties.getUri() + "]");
+//			return SkipperClient.create(skipperClientProperties.getUri());
+//		}
+
 		@Bean
-		public SkipperClient skipperClient(SkipperClientProperties skipperClientProperties) {
-			logger.info("Skipper URI = [" + skipperClientProperties.getUri() + "]");
-			return SkipperClient.create(skipperClientProperties.getUri());
+		public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
+			RestTemplate restTemplate = restTemplateBuilder
+					.errorHandler(new SkipperClientResponseErrorHandler(objectMapper)).build();
+			return restTemplate;
+		}
+
+		@Bean
+		public SkipperClient skipperClient(SkipperClientProperties properties, RestTemplate restTemplate) {
+			return new DefaultSkipperClient(properties.getUri(), restTemplate);
 		}
 
 		@Bean
