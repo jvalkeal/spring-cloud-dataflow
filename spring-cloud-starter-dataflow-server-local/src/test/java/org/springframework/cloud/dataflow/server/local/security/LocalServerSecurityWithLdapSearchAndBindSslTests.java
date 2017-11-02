@@ -68,6 +68,7 @@ public class LocalServerSecurityWithLdapSearchAndBindSslTests {
 
 	@Test
 	public void testAuthenticatedAccessToManagementEndpointSucceeds() throws Exception {
+		Thread.sleep(3000);
 		System.out.println("XXX1 " + System.getProperty("javax.net.ssl.trustStorePassword"));
 		System.out.println("XXX2 " + System.getProperty("javax.net.ssl.trustStore"));
 		System.out.println("XXX3 " + System.getProperty("javax.net.ssl.trustStoreType"));
