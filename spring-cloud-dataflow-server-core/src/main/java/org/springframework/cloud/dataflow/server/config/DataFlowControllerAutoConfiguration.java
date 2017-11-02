@@ -148,8 +148,14 @@ public class DataFlowControllerAutoConfiguration {
 //		}
 
 		@Bean
-		public SkipperClient skipperClient(SkipperClientProperties properties, RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
-			RestTemplate restTemplate = restTemplateBuilder.build();
+		public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
+			restTemplateBuilder.build();
+			return "hello";
+		}
+
+		@Bean
+		public SkipperClient skipperClient(SkipperClientProperties properties/*, RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper*/) {
+//			RestTemplate restTemplate = restTemplateBuilder.build();
 //			RestTemplate restTemplate = restTemplateBuilder
 //					.errorHandler(new SkipperClientResponseErrorHandler(objectMapper)).build();
 //			return new DefaultSkipperClient(properties.getUri(), restTemplate);
