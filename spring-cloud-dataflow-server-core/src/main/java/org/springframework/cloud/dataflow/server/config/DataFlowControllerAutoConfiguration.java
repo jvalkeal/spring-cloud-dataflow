@@ -129,6 +129,12 @@ public class DataFlowControllerAutoConfiguration {
 
 	private static Log logger = LogFactory.getLog(DataFlowControllerAutoConfiguration.class);
 
+	@Bean
+	public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
+		restTemplateBuilder.build();
+		return "hello";
+	}
+
 	@Configuration
 //	@Import(SkipperClientConfiguration.class)
 	@ConditionalOnBean({StreamDefinitionRepository.class, StreamDeploymentRepository.class})
