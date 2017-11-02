@@ -68,9 +68,9 @@ public class LocalServerSecurityWithLdapSearchAndBindSslTests {
 
 	@Test
 	public void testAuthenticatedAccessToManagementEndpointSucceeds() throws Exception {
-		System.out.println("XXX1 " + System.getProperty("javax.net.ssl.trustStorePassword"));
-		System.out.println("XXX2 " + System.getProperty("javax.net.ssl.trustStore"));
-		System.out.println("XXX3 " + System.getProperty("javax.net.ssl.trustStoreType"));
+		System.out.println("XXX11 " + System.getProperty("javax.net.ssl.trustStorePassword"));
+		System.out.println("XXX12 " + System.getProperty("javax.net.ssl.trustStore"));
+		System.out.println("XXX13 " + System.getProperty("javax.net.ssl.trustStoreType"));
 		localDataflowResource.getMockMvc().perform(
 				get("/management/metrics").header("Authorization", basicAuthorizationHeader("joe", "joespassword")))
 				.andDo(print()).andExpect(status().isOk());
