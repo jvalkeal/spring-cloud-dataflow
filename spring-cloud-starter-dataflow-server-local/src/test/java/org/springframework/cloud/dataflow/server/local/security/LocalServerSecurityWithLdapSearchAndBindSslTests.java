@@ -42,29 +42,29 @@ public class LocalServerSecurityWithLdapSearchAndBindSslTests {
 	public static TestRule springDataflowAndLdapServer = RuleChain.outerRule(new LdapServerResource(true))
 			.around(localDataflowResource);
 
-	@Test
-	public void testUnauthenticatedAccessToModulesEndpointFails() throws Exception {
-		localDataflowResource.getMockMvc().perform(get("/apps")).andExpect(status().isUnauthorized());
-	}
-
-	@Test
-	public void testUnauthenticatedAccessToManagementEndpointFails() throws Exception {
-		localDataflowResource.getMockMvc().perform(get("/management/metrics")).andExpect(status().isUnauthorized());
-	}
-
-	@Test
-	public void testAuthenticatedAccessToModulesEndpointSucceeds() throws Exception {
-		localDataflowResource.getMockMvc()
-				.perform(get("/apps").header("Authorization", basicAuthorizationHeader("joe", "joespassword")))
-				.andDo(print()).andExpect(status().isOk());
-	}
-
-	@Test
-	public void testUserExistsButNotFoundBySearch() throws Exception {
-		localDataflowResource.getMockMvc()
-				.perform(get("/apps").header("Authorization", basicAuthorizationHeader("bob", "bobspassword")))
-				.andDo(print()).andExpect(status().isUnauthorized());
-	}
+//	@Test
+//	public void testUnauthenticatedAccessToModulesEndpointFails() throws Exception {
+//		localDataflowResource.getMockMvc().perform(get("/apps")).andExpect(status().isUnauthorized());
+//	}
+//
+//	@Test
+//	public void testUnauthenticatedAccessToManagementEndpointFails() throws Exception {
+//		localDataflowResource.getMockMvc().perform(get("/management/metrics")).andExpect(status().isUnauthorized());
+//	}
+//
+//	@Test
+//	public void testAuthenticatedAccessToModulesEndpointSucceeds() throws Exception {
+//		localDataflowResource.getMockMvc()
+//				.perform(get("/apps").header("Authorization", basicAuthorizationHeader("joe", "joespassword")))
+//				.andDo(print()).andExpect(status().isOk());
+//	}
+//
+//	@Test
+//	public void testUserExistsButNotFoundBySearch() throws Exception {
+//		localDataflowResource.getMockMvc()
+//				.perform(get("/apps").header("Authorization", basicAuthorizationHeader("bob", "bobspassword")))
+//				.andDo(print()).andExpect(status().isUnauthorized());
+//	}
 
 	@Test
 	public void testAuthenticatedAccessToManagementEndpointSucceeds() throws Exception {
