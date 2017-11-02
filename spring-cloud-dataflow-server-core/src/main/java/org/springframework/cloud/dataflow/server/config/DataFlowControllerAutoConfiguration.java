@@ -131,7 +131,7 @@ public class DataFlowControllerAutoConfiguration {
 
 	@Bean
 	public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
-//		restTemplateBuilder.build();
+		restTemplateBuilder.build();
 		return "hello";
 	}
 
