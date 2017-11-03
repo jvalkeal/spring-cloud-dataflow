@@ -32,7 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Marius Bogoevici
  * @author Gunnar Hillert
  */
-@Ignore
 public class LocalServerSecurityWithLdapSearchAndBindTests {
 
 	private final static LocalDataflowResource localDataflowResource = new LocalDataflowResource(

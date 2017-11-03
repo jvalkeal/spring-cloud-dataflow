@@ -23,7 +23,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.analytics.metrics.AggregateCounterRepository;
 import org.springframework.analytics.metrics.FieldValueCounterRepository;
 import org.springframework.analytics.rest.controller.AggregateCounterController;
@@ -92,9 +93,7 @@ import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.skipper.client.DefaultSkipperClient;
 import org.springframework.cloud.skipper.client.SkipperClient;
-import org.springframework.cloud.skipper.client.SkipperClientConfiguration;
 import org.springframework.cloud.skipper.client.SkipperClientProperties;
-import org.springframework.cloud.skipper.client.SkipperClientResponseErrorHandler;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -102,10 +101,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.hateoas.EntityLinks;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ForkJoinPoolFactoryBean;
-import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Configuration for the Data Flow Server Controllers.
@@ -131,7 +129,9 @@ public class DataFlowControllerAutoConfiguration {
 
 	@Bean
 	public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
-		restTemplateBuilder.build();
+		HttpClient httpClient = HttpClientBuilder.create().build();
+		ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+		restTemplateBuilder.requestFactory(requestFactory).build();
 		return "hello";
 	}
 
