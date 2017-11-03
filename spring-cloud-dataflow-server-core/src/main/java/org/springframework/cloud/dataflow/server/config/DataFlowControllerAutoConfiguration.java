@@ -129,9 +129,10 @@ public class DataFlowControllerAutoConfiguration {
 
 	@Bean
 	public String fakeBean(RestTemplateBuilder restTemplateBuilder) {
-		HttpClient httpClient = HttpClientBuilder.create().build();
-		ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		restTemplateBuilder.requestFactory(requestFactory).build();
+//		HttpClient httpClient = HttpClientBuilder.create().build();
+//		ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+//		restTemplateBuilder.requestFactory(requestFactory).build();
+		restTemplateBuilder.detectRequestFactory(false).build();
 		return "hello";
 	}
 
