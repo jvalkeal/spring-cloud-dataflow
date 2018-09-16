@@ -94,7 +94,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Component
 @Configuration
-@EnableHypermediaSupport(type = HypermediaType.HAL)
+//@EnableHypermediaSupport(type = HypermediaType.HAL)
 public class ConfigCommands implements CommandMarker, InitializingBean, ApplicationListener<ApplicationReadyEvent>,
 		ApplicationContextAware {
 

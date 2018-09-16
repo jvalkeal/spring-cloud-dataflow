@@ -21,6 +21,7 @@ import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.analytics.metrics.AggregateCounterRepository;
@@ -36,6 +37,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author Eric Bottard
  */
+//@Ignore
 public class AggregateCounterCommandsTests extends AbstractShellIntegrationTest {
 
 	private static AggregateCounterRepository repository;

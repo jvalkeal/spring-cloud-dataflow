@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.cloud.dataflow.rest.job.support.ISO8601DateFormatWithMilliSeconds;
 import org.springframework.cloud.dataflow.server.job.support.ExecutionContextJacksonMixIn;
@@ -144,12 +145,21 @@ public class WebConfiguration implements ServletContextInitializer, ApplicationL
 		};
 	}
 
-	private void setupObjectMapper(ObjectMapper objectMapper) {
-		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
-		objectMapper.addMixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
-		objectMapper.addMixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+	@Bean
+	public Jackson2ObjectMapperBuilderCustomizer dataflowObjectMapperBuilderCustomizer() {
+		return (builder) -> {
+			builder.dateFormat(new ISO8601DateFormatWithMilliSeconds());
+			builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+		};
 	}
+
+//	private void setupObjectMapper(ObjectMapper objectMapper) {
+//		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+//		objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
+//		objectMapper.addMixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+//		objectMapper.addMixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+//	}
 
 	@Bean
 	public BeanPostProcessor relProviderOverridingBeanPostProcessor() {
