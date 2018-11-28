@@ -18,6 +18,13 @@ logging:
     # The following INFO is to log the embedded tomcat port
     org.springframework.boot.context.embedded.tomcat: 'INFO'
 spring:
+  batch:
+    initialize-schema: never
+  flyway:
+    locations:
+      - classpath:org/springframework/cloud/dataflow/server/db/migration/{vendor}
+    check-location: false
+    baseline-on-migrate: true
   jpa:
     properties:
       hibernate.id.new_generator_mappings: true
@@ -27,7 +34,13 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
   cloud:
+    task:
+      initialize:
+        enable: false
     dataflow:
+      rdbms:
+        initialize:
+          enable: false
       version-info:
         dependency-fetch:
           enabled: false
