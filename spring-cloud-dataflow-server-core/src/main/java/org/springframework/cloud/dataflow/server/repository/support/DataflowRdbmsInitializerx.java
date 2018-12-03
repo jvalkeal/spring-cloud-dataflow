@@ -46,9 +46,9 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
  * @author Ilayaperumal Gopinathan
  */
 
-public final class DataflowRdbmsInitializer implements InitializingBean {
+public final class DataflowRdbmsInitializerx implements InitializingBean {
 
-	private static final Log logger = LogFactory.getLog(DataflowRdbmsInitializer.class);
+	private static final Log logger = LogFactory.getLog(DataflowRdbmsInitializerx.class);
 
 	private static final String DEFAULT_SCHEMA_LOCATION = "classpath:schemas/@@platform@@/@@suffix@@.sql";
 
@@ -76,7 +76,7 @@ public final class DataflowRdbmsInitializer implements InitializingBean {
 	@Value("${" + DataFlowPropertyKeys.PREFIX + "rdbms.initialize.enable:true}")
 	private boolean definitionInitializationEnable;
 
-	public DataflowRdbmsInitializer(FeaturesProperties featuresProperties) {
+	public DataflowRdbmsInitializerx(FeaturesProperties featuresProperties) {
 		this.featuresProperties = featuresProperties;
 	}
 

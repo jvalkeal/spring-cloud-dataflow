@@ -25,9 +25,9 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.completion.CompletionConfiguration;
@@ -39,7 +39,6 @@ import org.springframework.cloud.dataflow.server.config.VersionInfoProperties;
 import org.springframework.cloud.dataflow.server.config.apps.CommonApplicationProperties;
 import org.springframework.cloud.dataflow.server.config.features.FeaturesProperties;
 import org.springframework.cloud.dataflow.server.repository.TaskDefinitionRepository;
-import org.springframework.cloud.dataflow.server.repository.support.DataflowRdbmsInitializer;
 import org.springframework.cloud.dataflow.server.service.AuditRecordService;
 import org.springframework.cloud.dataflow.server.service.DefaultAuditRecordService;
 import org.springframework.cloud.dataflow.server.service.SchedulerService;
@@ -87,8 +86,8 @@ import static org.mockito.Mockito.when;
 @EnableSpringDataWebSupport
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
 @Import(CompletionConfiguration.class)
-@ImportAutoConfiguration({ HibernateJpaAutoConfiguration.class, EmbeddedDataSourceConfiguration.class,
-		JacksonAutoConfiguration.class })
+@ImportAutoConfiguration({ HibernateJpaAutoConfiguration.class,
+		/*DataSourceAutoConfiguration.class,*/ JacksonAutoConfiguration.class, FlywayAutoConfiguration.class })
 @EnableWebMvc
 @EnableConfigurationProperties({ CommonApplicationProperties.class,
 		MetricsProperties.class,
@@ -181,13 +180,6 @@ public class TaskServiceDependencies extends WebMvcConfigurationSupport {
 	@Bean
 	ApplicationConfigurationMetadataResolver metadataResolver() {
 		return mock(ApplicationConfigurationMetadataResolver.class);
-	}
-
-	@Bean
-	public DataflowRdbmsInitializer definitionRepositoryInitializer(DataSource dataSource) {
-		DataflowRdbmsInitializer definitionRepositoryInitializer = new DataflowRdbmsInitializer(featuresProperties());
-		definitionRepositoryInitializer.setDataSource(dataSource);
-		return definitionRepositoryInitializer;
 	}
 
 	@Bean

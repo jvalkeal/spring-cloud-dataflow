@@ -17,16 +17,13 @@
 package org.springframework.cloud.dataflow.server.config;
 
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 
 import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.completion.CompletionConfiguration;
 import org.springframework.cloud.dataflow.server.config.apps.CommonApplicationProperties;
 import org.springframework.cloud.dataflow.server.config.features.FeaturesConfiguration;
-import org.springframework.cloud.dataflow.server.config.features.FeaturesProperties;
 import org.springframework.cloud.dataflow.server.config.web.WebConfiguration;
-import org.springframework.cloud.dataflow.server.repository.support.DataflowRdbmsInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -60,13 +57,5 @@ public class DataFlowServerConfiguration {
 	@Bean
 	public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
 		return new JpaTransactionManager(entityManagerFactory);
-	}
-
-	@Bean
-	public DataflowRdbmsInitializer dataflowRdbmsInitializer(DataSource dataSource,
-			FeaturesProperties featuresProperties) {
-		DataflowRdbmsInitializer dataflowRdbmsInitializer = new DataflowRdbmsInitializer(featuresProperties);
-		dataflowRdbmsInitializer.setDataSource(dataSource);
-		return dataflowRdbmsInitializer;
 	}
 }

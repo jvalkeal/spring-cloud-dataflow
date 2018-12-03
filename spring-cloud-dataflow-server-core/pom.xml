@@ -178,6 +178,10 @@
 			<artifactId>spring-cloud-skipper</artifactId>
 			<version>${spring-cloud-skipper.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -189,6 +193,7 @@
 					<include>banner.txt</include>
 					<include>META-INF/dataflow-server-defaults.yml</include>
 					<include>schemas/**</include>
+					<include>org/**</include>
 				</includes>
 			</resource>
 		</resources>
