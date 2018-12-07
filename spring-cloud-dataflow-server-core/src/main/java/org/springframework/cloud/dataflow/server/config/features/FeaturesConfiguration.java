@@ -35,25 +35,25 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 @Import({ AnalyticsConfiguration.class, StreamConfiguration.class, TaskConfiguration.class, SchedulerConfiguration.class })
 public class FeaturesConfiguration {
 
-	@Autowired
-	private RedisConnectionFactory redisConnectionFactory;
-
-	@Bean
-	@ConditionalOnExpression("#{'${" + FeaturesProperties.FEATURES_PREFIX + "." + FeaturesProperties.ANALYTICS_ENABLED
-			+ ":true}'.equalsIgnoreCase('false')}")
-	public RedisHealthIndicator redisHealthIndicator() {
-		return new CustomRedisHealthIndicator(redisConnectionFactory);
-	}
-
-	private class CustomRedisHealthIndicator extends RedisHealthIndicator {
-
-		public CustomRedisHealthIndicator(RedisConnectionFactory redisConnectionFactory) {
-			super(redisConnectionFactory);
-		}
-
-		@Override
-		protected void doHealthCheck(Health.Builder builder) throws Exception {
-			// do nothing - status UNKNOWN
-		}
-	}
+//	@Autowired
+//	private RedisConnectionFactory redisConnectionFactory;
+//
+//	@Bean
+//	@ConditionalOnExpression("#{'${" + FeaturesProperties.FEATURES_PREFIX + "." + FeaturesProperties.ANALYTICS_ENABLED
+//			+ ":true}'.equalsIgnoreCase('false')}")
+//	public RedisHealthIndicator redisHealthIndicator() {
+//		return new CustomRedisHealthIndicator(redisConnectionFactory);
+//	}
+//
+//	private class CustomRedisHealthIndicator extends RedisHealthIndicator {
+//
+//		public CustomRedisHealthIndicator(RedisConnectionFactory redisConnectionFactory) {
+//			super(redisConnectionFactory);
+//		}
+//
+//		@Override
+//		protected void doHealthCheck(Health.Builder builder) throws Exception {
+//			// do nothing - status UNKNOWN
+//		}
+//	}
 }

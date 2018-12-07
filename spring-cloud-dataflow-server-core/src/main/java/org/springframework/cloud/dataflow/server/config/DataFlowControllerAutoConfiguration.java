@@ -205,9 +205,9 @@ public class DataFlowControllerAutoConfiguration {
 	@Configuration
 	public static class AppRegistryConfiguration {
 
-		@ConfigurationProperties(prefix = "maven")
-		static class MavenConfigurationProperties extends MavenProperties {
-		}
+//		@ConfigurationProperties(prefix = "maven")
+//		static class MavenConfigurationProperties extends MavenProperties {
+//		}
 
 		@Bean
 		@ConditionalOnMissingBean(name = "appRegistryFJPFB")
@@ -217,23 +217,23 @@ public class DataFlowControllerAutoConfiguration {
 			return forkJoinPoolFactoryBean;
 		}
 
-		@Bean
-		public MavenResourceLoader mavenResourceLoader(MavenProperties properties) {
-			return new MavenResourceLoader(properties);
-		}
+//		@Bean
+//		public MavenResourceLoader mavenResourceLoader(MavenProperties properties) {
+//			return new MavenResourceLoader(properties);
+//		}
+//
+//		@Bean
+//		@ConditionalOnMissingBean(DelegatingResourceLoader.class)
+//		public DelegatingResourceLoader delegatingResourceLoader(MavenResourceLoader mavenResourceLoader) {
+//			Map<String, ResourceLoader> loaders = new HashMap<>();
+//			loaders.put("maven", mavenResourceLoader);
+//			return new DelegatingResourceLoader(loaders);
+//		}
 
-		@Bean
-		@ConditionalOnMissingBean(DelegatingResourceLoader.class)
-		public DelegatingResourceLoader delegatingResourceLoader(MavenResourceLoader mavenResourceLoader) {
-			Map<String, ResourceLoader> loaders = new HashMap<>();
-			loaders.put("maven", mavenResourceLoader);
-			return new DelegatingResourceLoader(loaders);
-		}
-
-		@Bean
-		public MavenProperties mavenProperties() {
-			return new MavenConfigurationProperties();
-		}
+//		@Bean
+//		public MavenProperties mavenProperties() {
+//			return new MavenConfigurationProperties();
+//		}
 
 		@Bean
 		public AppResourceCommon appResourceCommon(MavenProperties mavenProperties, DelegatingResourceLoader delegatingResourceLoader) {

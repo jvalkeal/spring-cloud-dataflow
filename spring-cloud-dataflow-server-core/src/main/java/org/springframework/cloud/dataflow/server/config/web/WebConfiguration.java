@@ -160,10 +160,10 @@ public class WebConfiguration implements ServletContextInitializer, ApplicationL
 		};
 	}
 
-	@Bean
-	public MethodValidationPostProcessor methodValidationPostProcessor() {
-		return new MethodValidationPostProcessor();
-	}
+//	@Bean
+//	public MethodValidationPostProcessor methodValidationPostProcessor() {
+//		return new MethodValidationPostProcessor();
+//	}
 
 	@Override
 	public void onApplicationEvent(ContextClosedEvent event) {

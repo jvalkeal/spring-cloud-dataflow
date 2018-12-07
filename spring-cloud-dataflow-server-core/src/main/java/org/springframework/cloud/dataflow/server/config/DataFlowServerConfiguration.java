@@ -57,10 +57,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EnableConfigurationProperties({ BatchProperties.class, CommonApplicationProperties.class })
 public class DataFlowServerConfiguration {
 
-	@Bean
-	public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-		return new JpaTransactionManager(entityManagerFactory);
-	}
+//	@Bean
+//	public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+//		return new JpaTransactionManager(entityManagerFactory);
+//	}
 
 	@Bean
 	public DataflowRdbmsInitializer dataflowRdbmsInitializer(DataSource dataSource,

@@ -81,7 +81,7 @@ import org.springframework.util.StringUtils;
 @ConditionalOnTasksEnabled
 @EnableConfigurationProperties({ TaskConfigurationProperties.class, CommonApplicationProperties.class,
 		DockerValidatorProperties.class, LocalPlatformProperties.class})
-@EnableMapRepositories(basePackages = "org.springframework.cloud.dataflow.server.job")
+//@EnableMapRepositories(basePackages = "org.springframework.cloud.dataflow.server.job")
 @EnableTransactionManagement
 public class TaskConfiguration {
 
@@ -91,15 +91,15 @@ public class TaskConfiguration {
 	@Value("${spring.cloud.dataflow.server.uri:}")
 	private String dataflowServerUri;
 
-	@Bean
-	public TaskExplorerFactoryBean taskExplorerFactoryBean(DataSource dataSource) {
-		return new TaskExplorerFactoryBean(dataSource);
-	}
+//	@Bean
+//	public TaskExplorerFactoryBean taskExplorerFactoryBean(DataSource dataSource) {
+//		return new TaskExplorerFactoryBean(dataSource);
+//	}
 
-	@Bean
-	public TaskRepository taskRepository(DataSource dataSource) {
-		return new SimpleTaskRepository(new TaskExecutionDaoFactoryBean(dataSource));
-	}
+//	@Bean
+//	public TaskRepository taskRepository(DataSource dataSource) {
+//		return new SimpleTaskRepository(new TaskExecutionDaoFactoryBean(dataSource));
+//	}
 
 	@Bean
 	@ConditionalOnProperty(value = "spring.cloud.dataflow.task.enableLocalPlatform", matchIfMissing = true)

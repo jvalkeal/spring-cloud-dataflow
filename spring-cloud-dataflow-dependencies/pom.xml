@@ -21,6 +21,7 @@
 				<artifactId>mariadb-java-client</artifactId>
 				<version>2.2.5</version>
 			</dependency>
+<!--
 			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-core</artifactId>
@@ -31,6 +32,7 @@
 				<artifactId>hibernate-entitymanager</artifactId>
 				<version>5.2.12.Final</version>
 			</dependency>
+-->
 			<dependency>
 				<groupId>com.zaxxer</groupId>
 				<artifactId>HikariCP</artifactId>
