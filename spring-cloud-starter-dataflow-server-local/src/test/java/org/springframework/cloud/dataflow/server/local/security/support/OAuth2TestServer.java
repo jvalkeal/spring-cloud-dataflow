@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.authserver.AuthorizationServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.authserver.OAuth2AuthorizationServerConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -34,8 +35,10 @@ import org.springframework.cloud.dataflow.autoconfigure.local.LocalDataFlowServe
 import org.springframework.cloud.dataflow.configuration.metadata.ApplicationConfigurationMetadataResolverAutoConfiguration;
 import org.springframework.cloud.deployer.spi.local.LocalDeployerAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
@@ -65,14 +68,24 @@ public class OAuth2TestServer {
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(OAuth2TestServer.class)
-				.properties("server.port:" + SocketUtils.findAvailableTcpPort()).build()
-				.run("--debug --spring.config.location=classpath:/org/springframework/cloud/dataflow/server/local"
-						+ "/security/support/oauth2TestServerConfig.yml");
+				.run("--spring.cloud.common.security.enabled=false", "--server.port=9999",
+						"--logging.level.org.springframework=debug",
+						"--spring.config.location=classpath:/org/springframework/cloud/dataflow/server/local"
+								+ "/security/support/oauth2TestServerConfig.yml");
+//		new SpringApplicationBuilder(OAuth2TestServer.class)
+//				.properties("server.port:" + SocketUtils.findAvailableTcpPort()).build()
+//				.run("--debug --spring.config.location=classpath:/org/springframework/cloud/dataflow/server/local"
+//						+ "/security/support/oauth2TestServerConfig.yml");
 	}
 
 	@RequestMapping({ "/user", "/me" })
 	public Map<String, String> user(Principal principal) {
 		return Collections.singletonMap("name", principal.getName());
+	}
+
+	@Configuration
+	@Order(SecurityProperties.BASIC_AUTH_ORDER)
+	protected static class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Configuration

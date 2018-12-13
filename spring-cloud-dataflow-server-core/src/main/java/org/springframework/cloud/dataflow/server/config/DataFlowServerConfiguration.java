@@ -50,8 +50,8 @@ import org.springframework.hateoas.config.EnableHypermediaSupport;
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
 @EnableSpringDataWebSupport
 @Configuration
-@Import({ CompletionConfiguration.class, FeaturesConfiguration.class, WebConfiguration.class,
-		SecurityConfiguration.class })
+@Import({ CompletionConfiguration.class, FeaturesConfiguration.class, WebConfiguration.class
+	/*, SecurityConfiguration.class*/ })
 @EnableConfigurationProperties({ BatchProperties.class, CommonApplicationProperties.class })
 public class DataFlowServerConfiguration {
 
