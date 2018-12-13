@@ -23,8 +23,9 @@ import org.springframework.context.annotation.Import;
 
 /**
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @Configuration
-@Import({ OAuthSecurityConfiguration.class, IgnoreAllSecurityConfiguration.class })
+@Import({ DataflowOAuthSecurityConfiguration.class, IgnoreAllSecurityConfiguration.class })
 public class SecurityConfiguration {
 }

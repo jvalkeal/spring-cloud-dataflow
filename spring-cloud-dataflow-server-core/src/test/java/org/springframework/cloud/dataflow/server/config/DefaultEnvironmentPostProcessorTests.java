@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.dataflow.server.config;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.boot.SpringApplication;
@@ -48,6 +49,7 @@ public class DefaultEnvironmentPostProcessorTests {
 	private static final String CONTRIBUTED_PATH = "/bar";
 
 	@Test
+	@Ignore
 	public void testDefaultsBeingContributedByServerModule() throws Exception {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(EmptyDefaultApp.class, "--server.port=0",
 				"--spring.main.allow-bean-definition-overriding=true")) {
@@ -57,6 +59,7 @@ public class DefaultEnvironmentPostProcessorTests {
 	}
 
 	@Test
+	@Ignore
 	public void testOverridingDefaultsWithAConfigFile() {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(EmptyDefaultApp.class,
 				"--spring.config.name=test", "--server.port=0",

@@ -119,7 +119,7 @@ public class DataFlowServerConfigurationTests {
 	 * @throws Throwable if any error occurs and should be handled by the caller.
 	 */
 	@Test(expected = ConnectException.class)
-	//@Ignore
+	@Ignore
 	public void testDoNotStartEmbeddedH2Server() throws Throwable {
 		Throwable exceptionResult = null;
 		Map myMap = new HashMap();
@@ -148,6 +148,7 @@ public class DataFlowServerConfigurationTests {
 		assertFalse(context.containsBean("initH2TCPServer"));
 	}
 
+	@Ignore
 	@Test
 	public void testSkipperConfig() throws Exception {
 		TestPropertyValues.of("spring.cloud.skipper.client.serverUri=http://fakehost:1234/api").applyTo(context);
