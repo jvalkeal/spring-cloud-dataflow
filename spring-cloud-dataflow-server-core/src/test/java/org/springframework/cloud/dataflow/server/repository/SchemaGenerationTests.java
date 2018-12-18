@@ -39,8 +39,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
+import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.dataflow.server.repository.support.UpperCaseSpringPhysicalNamingStrategy;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -55,11 +55,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 })
 @EntityScan({
 	"org.springframework.cloud.dataflow.registry.domain",
-	"org.springframework.cloud.dataflow.server.audit.domain"
+	"org.springframework.cloud.dataflow.core"
 })
 @EnableJpaRepositories(basePackages = {
 	"org.springframework.cloud.dataflow.registry.repository",
-	"org.springframework.cloud.dataflow.server.audit.repository"
+	"org.springframework.cloud.dataflow.server.repository"
 })
 public class SchemaGenerationTests {
 
@@ -101,7 +101,7 @@ public class SchemaGenerationTests {
 		final MetadataSources metadata = new MetadataSources(
 				new StandardServiceRegistryBuilder()
 					.applySetting("hibernate.dialect", "org.hibernate.dialect." + dialect + "Dialect")
-					.applySetting("hibernate.physical_naming_strategy", UpperCaseSpringPhysicalNamingStrategy.class.getName())
+					.applySetting("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName())
 					.applySetting("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName())
 					.build());
 

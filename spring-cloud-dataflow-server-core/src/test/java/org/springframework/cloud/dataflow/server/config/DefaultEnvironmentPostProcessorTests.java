@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.session.SessionAutoConfiguration;
 import org.springframework.cloud.dataflow.server.EnableDataFlowServer;
 import org.springframework.cloud.dataflow.server.service.SchedulerService;
@@ -68,7 +69,7 @@ public class DefaultEnvironmentPostProcessorTests {
 
 	@Configuration
 	@Import(TestConfiguration.class)
-	@EnableAutoConfiguration(exclude = SessionAutoConfiguration.class)
+	@EnableAutoConfiguration(exclude = { SessionAutoConfiguration.class, FlywayAutoConfiguration.class })
 	@EnableDataFlowServer
 	public static class EmptyDefaultApp {
 	}

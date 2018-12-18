@@ -42,7 +42,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * @author Christian Tzolov
  */
 @Entity
-@Table(name = "AUDIT_RECORDS")
+//@Table(name = "AUDIT_RECORDS")
+@Table(name = "AuditRecords")
 @EntityListeners(AuditingEntityListener.class)
 public class AuditRecord {
 
@@ -63,14 +64,17 @@ public class AuditRecord {
 	private String auditData;
 
 	@CreatedDate
+	@Column(name = "created_on")
 	private Instant createdOn;
 
 	@NotNull
 	@Convert(converter = AuditActionTypeConverter.class)
+	@Column(name = "audit_action")
 	private AuditActionType auditAction;
 
 	@NotNull
 	@Convert(converter = AuditOperationTypeConverter.class)
+	@Column(name = "audit_operation")
 	private AuditOperationType auditOperation;
 
 	public Long getId() {
