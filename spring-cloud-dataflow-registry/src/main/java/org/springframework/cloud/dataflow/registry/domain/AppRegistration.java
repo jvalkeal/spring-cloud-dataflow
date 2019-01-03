@@ -34,7 +34,8 @@ import org.springframework.util.Assert;
  * @author Vinicius Carvalho
  */
 @Entity
-@Table(name = "APP_REGISTRATION")
+//@Table(name = "APP_REGISTRATION")
+@Table(name = "AppRegistration")
 public class AppRegistration extends AbstractEntity implements Comparable<AppRegistration> {
 
 	/**
