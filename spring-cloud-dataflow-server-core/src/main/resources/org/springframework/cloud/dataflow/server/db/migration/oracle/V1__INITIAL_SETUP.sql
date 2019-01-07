@@ -1,5 +1,3 @@
--- create sequence if not exists hibernate_sequence start with 1 increment by  1;
-
 create table app_registration (
   id number(19,0) not null,
   object_version number(19,0),
