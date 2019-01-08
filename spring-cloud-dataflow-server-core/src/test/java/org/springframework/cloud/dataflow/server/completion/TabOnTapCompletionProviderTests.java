@@ -28,6 +28,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.dataflow.completion.CompletionProposal;
 import org.springframework.cloud.dataflow.completion.StreamCompletionProvider;
@@ -61,6 +63,7 @@ import static org.mockito.Mockito.mock;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TestDependencies.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 @SuppressWarnings("unchecked")
 public class TabOnTapCompletionProviderTests {
 
@@ -167,6 +170,7 @@ public class TabOnTapCompletionProviderTests {
 					return null;
 				}
 
+				@Override
 				protected boolean isOverwrite(AppRegistration app, boolean overwrite) {
 					return false;
 				}

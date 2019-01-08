@@ -83,7 +83,6 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { TaskServiceDependencies.class }, properties = {
 		"spring.main.allow-bean-definition-overriding=true" })
-@AutoConfigureTestDatabase(replace = Replace.ANY)
 public abstract class DefaultTaskServiceTests {
 
 	@Rule
@@ -131,6 +130,7 @@ public abstract class DefaultTaskServiceTests {
 
 
 	@TestPropertySource(properties = { "spring.cloud.dataflow.task.maximum-concurrent-tasks=10" })
+	@AutoConfigureTestDatabase(replace = Replace.ANY)
 	public static class SimpleTaskTests extends DefaultTaskServiceTests {
 
 		@Before
@@ -250,6 +250,7 @@ public abstract class DefaultTaskServiceTests {
 
 	@TestPropertySource(properties = { "spring.cloud.dataflow.applicationProperties.task.globalkey=globalvalue",
 		"spring.cloud.dataflow.applicationProperties.stream.globalstreamkey=nothere" })
+	@AutoConfigureTestDatabase(replace = Replace.ANY)
 	public static class ComposedTaskTests extends DefaultTaskServiceTests {
 
 		@Autowired

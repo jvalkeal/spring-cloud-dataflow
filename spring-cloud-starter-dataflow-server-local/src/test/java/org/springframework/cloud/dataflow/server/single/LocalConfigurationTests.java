@@ -142,8 +142,6 @@ public class LocalConfigurationTests {
 		SpringApplication app = new SpringApplication(LocalTestNoDataFlowServer.class);
 		context = app.run(new String[] { "--server.port=0", "--spring.jpa.database=H2", "--spring.flyway.enabled=false" });
 		// we still have deployer beans
-//		assertThat(context.containsBean(APP_DEPLOYER_BEAN_NAME), is(true));
-//		assertThat(context.containsBean(TASK_LAUNCHER_BEAN_NAME), is(true));
 		assertThat(context.containsBean("appRegistry"), is(false));
 	}
 }

@@ -28,11 +28,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.dataflow.server.configuration.TaskDependencies;
+import org.springframework.cloud.dataflow.server.configuration.TaskServiceDependencies;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.data.domain.PageRequest;
@@ -47,9 +47,10 @@ import static org.junit.Assert.assertEquals;
  * @author Glenn Renfro
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { TaskDependencies.class, EmbeddedDataSourceConfiguration.class,
-		PropertyPlaceholderAutoConfiguration.class, FlywayAutoConfiguration.class })
+@SpringBootTest(classes = { TaskDependencies.class, TaskServiceDependencies.class }, properties = {
+		"spring.main.allow-bean-definition-overriding=true" })
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 public class TaskExecutionExplorerTests {
 
 	@Autowired
