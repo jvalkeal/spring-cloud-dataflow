@@ -10,24 +10,24 @@ drop index if exists AUDIT_RECORDS_CREATED_ON_IDX;
 
 -- prepare V1 tables so that we can copy data over
 create table app_registration_tmp (
-  id int8 not null,
-  object_version int8,
-  default_version boolean,
-  metadata_uri text,
+  id bigint not null,
+  object_version bigint,
+  default_version bit,
+  metadata_uri varchar(MAX),
   name varchar(255),
-  type int4,
-  uri text,
+  type int,
+  uri varchar(MAX),
   version varchar(255),
   primary key (id)
 );
 create table audit_records_tmp (
-  id int8 not null,
-  audit_action int8,
-  audit_data text,
-  audit_operation int8,
+  id bigint not null,
+  audit_action bigint,
+  audit_data varchar(MAX),
+  audit_operation bigint,
   correlation_id varchar(255),
   created_by varchar(255),
-  created_on timestamp,
+  created_on datetime2,
   primary key (id)
 );
 
@@ -57,9 +57,9 @@ create index if not exists audit_records_created_on_idx on audit_records (create
 
 -- expected V1 additions
 CREATE TABLE TASK_LOCK (
-  LOCK_KEY CHAR(36),
-  REGION VARCHAR(100),
+  LOCK_KEY CHAR(36) NOT NULL,
+  REGION VARCHAR(100) NOT NULL,
   CLIENT_ID CHAR(36),
-  CREATED_DATE TIMESTAMP NOT NULL,
+  CREATED_DATE DATETIME NOT NULL,
   constraint LOCK_PK primary key (LOCK_KEY, REGION)
 );
