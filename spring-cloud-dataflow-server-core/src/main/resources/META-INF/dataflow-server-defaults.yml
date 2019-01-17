@@ -33,7 +33,7 @@ spring:
           implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
   flyway:
     enabled: true
-    baselineVersion: 0
+    baselineVersion: 1
     baselineOnMigrate: true
     table: flyway_schema_history_dataflow
     locations:

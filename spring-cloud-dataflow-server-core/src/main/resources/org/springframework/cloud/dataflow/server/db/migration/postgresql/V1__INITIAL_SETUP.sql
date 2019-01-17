@@ -1,3 +1,4 @@
+-- NOTE: after released, this file should not be modified as flyway will checksum it
 create sequence if not exists hibernate_sequence start 1 increment 1;
 
 create table app_registration (

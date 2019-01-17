@@ -18,27 +18,29 @@ package org.springframework.cloud.dataflow.server.db.migration.db2;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.cloud.dataflow.server.db.migration.AbstractMigration;
+import org.flywaydb.core.api.callback.Event;
+
+import org.springframework.cloud.dataflow.server.db.migration.AbstractCallback;
 import org.springframework.cloud.dataflow.server.db.migration.SqlCommand;
 
 /**
- * Repeatable migration ensuring that {@code hibernate_sequence} table exists.
- * Done for {@code db2} via java and suppressing error as it doesn't support
- * "create sequence if not exists".
+ * For DB2 {@code beforeBaseline} callback to drop indexes as these cannot be
+ * done in sql. Java based callback is run before sql based callbacks.
  *
  * @author Janne Valkealahti
  *
  */
-public class R__Hibernate_Sequence extends AbstractMigration {
+public class Db2BeforeBaselineCallback extends AbstractCallback {
 
-	// Caused by: org.springframework.jdbc.BadSqlGrammarException:
-	// StatementCallback; bad SQL grammar [create sequence hibernate_sequence start with 1 increment by 1];
-	// nested exception is com.ibm.db2.jcc.am.SqlSyntaxErrorException:
-	// DB2 SQL Error: SQLCODE=-601, SQLSTATE=42710, SQLERRMC=HIBERNATE_SEQUENCE;SEQUENCE, DRIVER=4.19.26
+	//-204 name IS AN UNDEFINED NAME, i.e dropping unknown index
+	private final static int DB2MINUS204 = 204;
 	private final static List<SqlCommand> commands = Arrays.asList(
-			SqlCommand.from("create sequence hibernate_sequence start with 1 increment by 1", -601));
+			SqlCommand.from("drop index AUDIT_RECORDS_AUDIT_ACTION_IDX", DB2MINUS204),
+			SqlCommand.from("drop index AUDIT_RECORDS_AUDIT_OPERATION_IDX", DB2MINUS204),
+			SqlCommand.from("drop index AUDIT_RECORDS_CORRELATION_ID_IDX", DB2MINUS204),
+			SqlCommand.from("drop index AUDIT_RECORDS_CREATED_ON_IDX", DB2MINUS204));
 
-	public R__Hibernate_Sequence() {
-		super(commands);
+	public Db2BeforeBaselineCallback() {
+		super(Event.BEFORE_BASELINE, commands);
 	}
 }

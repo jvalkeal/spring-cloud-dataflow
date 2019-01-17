@@ -18,27 +18,29 @@ package org.springframework.cloud.dataflow.server.db.migration.oracle;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.cloud.dataflow.server.db.migration.AbstractMigration;
+import org.flywaydb.core.api.callback.Event;
+
+import org.springframework.cloud.dataflow.server.db.migration.AbstractCallback;
 import org.springframework.cloud.dataflow.server.db.migration.SqlCommand;
 
 /**
- * Repeatable migration ensuring that {@code hibernate_sequence} table exists.
- * Done for {@code oracle} via java and suppressing error as it doesn't support
- * "create sequence if not exists".
+ * For Oracle {@code beforeBaseline} callback to drop indexes as these cannot be
+ * done in sql. Java based callback is run before sql based callbacks.
  *
  * @author Janne Valkealahti
  *
  */
-public class R__Hibernate_Sequence extends AbstractMigration {
+public class OracleBeforeBaselineCallback extends AbstractCallback {
 
-	// Caused by: org.springframework.jdbc.BadSqlGrammarException:
-	// StatementCallback; bad SQL grammar [create sequence hibernate_sequence start with 1 increment by 1];
-	// nested exception is java.sql.SQLSyntaxErrorException:
-	// ORA-00955: name is already used by an existing object
+	// ORA-01418: specified index does not exist
+	private final static int ORA01418 = 1418;
 	private final static List<SqlCommand> commands = Arrays.asList(
-			SqlCommand.from("create sequence hibernate_sequence start with 1 increment by 1", 955));
+			SqlCommand.from("drop index AUDIT_RECORDS_AUDIT_ACTION_IDX", ORA01418),
+			SqlCommand.from("drop index AUDIT_RECORDS_AUDIT_OPERATION_IDX", ORA01418),
+			SqlCommand.from("drop index AUDIT_RECORDS_CORRELATION_ID_IDX", ORA01418),
+			SqlCommand.from("drop index AUDIT_RECORDS_CREATED_ON_IDX", ORA01418));
 
-	public R__Hibernate_Sequence() {
-		super(commands);
+	public OracleBeforeBaselineCallback() {
+		super(Event.BEFORE_BASELINE, commands);
 	}
 }
