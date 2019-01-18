@@ -33,6 +33,16 @@ public class SqlCommand {
 	 * Convenience method returning new instance.
 	 *
 	 * @param command the command
+	 * @return the sql command
+	 */
+	public static SqlCommand from(String command) {
+		return new SqlCommand(command, null);
+	}
+
+	/**
+	 * Convenience method returning new instance.
+	 *
+	 * @param command the command
 	 * @param suppressedErrorCode the suppressed error code
 	 * @return the sql command
 	 */

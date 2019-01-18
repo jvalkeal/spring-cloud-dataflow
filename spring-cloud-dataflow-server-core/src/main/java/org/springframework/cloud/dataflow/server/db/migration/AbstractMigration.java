@@ -38,6 +38,10 @@ public abstract class AbstractMigration extends BaseJavaMigration {
 
 	@Override
 	public void migrate(Context context) throws Exception {
-		runner.execute(context.getConnection(), commands);
+		runner.execute(context.getConnection(), getCommands());
+	}
+
+	public List<SqlCommand> getCommands() {
+		return commands;
 	}
 }

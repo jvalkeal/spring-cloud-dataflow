@@ -31,12 +31,21 @@ import org.springframework.util.ObjectUtils;
  * @author Janne Valkealahti
  *
  */
-public class AbstractCallback implements Callback {
+public abstract class AbstractCallback implements Callback {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractCallback.class);
 	private final Event event;
 	private final List<SqlCommand> commands;
 	private final SqlCommandsRunner runner = new SqlCommandsRunner();
+
+	/**
+	 * Instantiates a new abstract callback.
+	 *
+	 * @param event the event to hook into
+	 */
+	public AbstractCallback(Event event) {
+		this(event, null);
+	}
 
 	/**
 	 * Instantiates a new abstract callback.
@@ -62,7 +71,10 @@ public class AbstractCallback implements Callback {
 
 	@Override
 	public void handle(Event event, Context context) {
-		logger.debug("executing commands {}", commands);
-		runner.execute(context.getConnection(), commands);
+		runner.execute(context.getConnection(), getCommands(event, context));
+	}
+
+	public List<SqlCommand> getCommands(Event event, Context context) {
+		return commands;
 	}
 }

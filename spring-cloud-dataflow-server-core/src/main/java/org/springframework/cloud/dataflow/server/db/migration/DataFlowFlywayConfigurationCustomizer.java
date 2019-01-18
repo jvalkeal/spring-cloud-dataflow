@@ -21,8 +21,11 @@ import org.flywaydb.core.api.configuration.FluentConfiguration;
 
 import org.springframework.boot.autoconfigure.flyway.FlywayConfigurationCustomizer;
 import org.springframework.boot.jdbc.DatabaseDriver;
-import org.springframework.cloud.dataflow.server.db.migration.db2.Db2BeforeBaselineCallback;
-import org.springframework.cloud.dataflow.server.db.migration.oracle.OracleBeforeBaselineCallback;
+import org.springframework.cloud.dataflow.server.db.migration.db2.Db2BeforeBaseline;
+import org.springframework.cloud.dataflow.server.db.migration.mysql.MysqlBeforeBaseline;
+import org.springframework.cloud.dataflow.server.db.migration.oracle.OracleBeforeBaseline;
+import org.springframework.cloud.dataflow.server.db.migration.postgres.PostgresBeforeBaseline;
+import org.springframework.cloud.dataflow.server.db.migration.sqlserver.MsSqlBeforeBaseline;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
 
@@ -44,11 +47,20 @@ public class DataFlowFlywayConfigurationCustomizer implements FlywayConfiguratio
 		// vendor id, so essentially customizing those here.
 		DataSource dataSource = configuration.getDataSource();
 		DatabaseDriver databaseDriver = getDatabaseDriver(dataSource);
-		if (databaseDriver == DatabaseDriver.ORACLE) {
-			configuration.callbacks(new OracleBeforeBaselineCallback());
+		if (databaseDriver == DatabaseDriver.POSTGRESQL) {
+			configuration.callbacks(new PostgresBeforeBaseline());
+		}
+		else if (databaseDriver == DatabaseDriver.MYSQL) {
+			configuration.callbacks(new MysqlBeforeBaseline());
+		}
+		else if (databaseDriver == DatabaseDriver.SQLSERVER) {
+			configuration.callbacks(new MsSqlBeforeBaseline());
+		}
+		else if (databaseDriver == DatabaseDriver.ORACLE) {
+			configuration.callbacks(new OracleBeforeBaseline());
 		}
 		else if (databaseDriver == DatabaseDriver.DB2) {
-			configuration.callbacks(new Db2BeforeBaselineCallback());
+			configuration.callbacks(new Db2BeforeBaseline());
 		}
 	}
 
