@@ -95,11 +95,23 @@ public class SqlCommand {
 		return suppressedErrorCodes;
 	}
 
+	/**
+	 * Checks if this command can handle execution directly
+	 * in a given jdbc template.
+	 *
+	 * @return true, if command can handle jdbc template
+	 */
 	public boolean canHandleInJdbcTemplate() {
 		return false;
 	}
 
+	/**
+	 * Handle command in a given jdbc template.
+	 *
+	 * @param jdbcTemplate the jdbc template
+	 */
 	public void handle(JdbcTemplate jdbcTemplate) {
+		// expected to get handled in a sub-class
 		throw new UnsupportedOperationException("Not supported in a base class");
 	}
 }

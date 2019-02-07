@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.flywaydb.core.api.callback.Context;
 import org.flywaydb.core.api.callback.Event;
-
 import org.springframework.cloud.dataflow.server.db.migration.AbstractBaselineCallback;
 import org.springframework.cloud.dataflow.server.db.migration.SqlCommand;
 
@@ -148,6 +147,12 @@ public class PostgresBeforeBaseline extends AbstractBaselineCallback {
 				SqlCommand.from(INSERT_APP_REGISTRATION_DATA),
 				SqlCommand.from(DROP_APP_REGISTRATION_TABLE),
 				SqlCommand.from(RENAME_APP_REGISTRATION_TMP_TABLE));
+	}
+
+	@Override
+	public List<SqlCommand> changeUriRegistryTable() {
+		return Arrays.asList(
+				new PostgresMigrateUriRegistrySqlCommand());
 	}
 
 	@Override

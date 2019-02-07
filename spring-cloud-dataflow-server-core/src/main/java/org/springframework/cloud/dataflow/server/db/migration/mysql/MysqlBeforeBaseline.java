@@ -141,7 +141,7 @@ public class MysqlBeforeBaseline extends AbstractBaselineCallback {
 	@Override
 	public List<SqlCommand> changeUriRegistryTable() {
 		return Arrays.asList(
-				new MigrateUriRegistrySqlCommand());
+				new MysqlMigrateUriRegistrySqlCommand());
 	}
 
 	@Override

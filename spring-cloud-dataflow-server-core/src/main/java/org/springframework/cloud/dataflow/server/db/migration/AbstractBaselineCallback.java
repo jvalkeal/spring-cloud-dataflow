@@ -98,9 +98,12 @@ public abstract class AbstractBaselineCallback extends AbstractCallback {
 	 */
 	public abstract List<SqlCommand> changeAppRegistrationTable();
 
-	public List<SqlCommand> changeUriRegistryTable() {
-		return Collections.emptyList();
-	}
+	/**
+	 * Change uri registry table.
+	 *
+	 * @return the list of sql commands
+	 */
+	public abstract List<SqlCommand> changeUriRegistryTable();
 
 	/**
 	 * Change stream definitions table.
