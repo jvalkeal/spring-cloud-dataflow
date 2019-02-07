@@ -18,6 +18,8 @@ package org.springframework.cloud.dataflow.server.db.migration;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 /**
  * Class keeping a sql command and its possible suppressing sql codes together.
  *
@@ -48,6 +50,10 @@ public class SqlCommand {
 	 */
 	public static SqlCommand from(String command, int suppressedErrorCode) {
 		return new SqlCommand(command, suppressedErrorCode);
+	}
+
+	public SqlCommand() {
+		this(null, null);
 	}
 
 	/**
@@ -87,5 +93,13 @@ public class SqlCommand {
 	 */
 	public List<Integer> getSuppressedErrorCodes() {
 		return suppressedErrorCodes;
+	}
+
+	public boolean canHandleInJdbcTemplate() {
+		return false;
+	}
+
+	public void handle(JdbcTemplate jdbcTemplate) {
+		throw new UnsupportedOperationException("Not supported in a base class");
 	}
 }

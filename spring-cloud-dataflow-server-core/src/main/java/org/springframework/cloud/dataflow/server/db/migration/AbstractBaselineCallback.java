@@ -16,6 +16,7 @@
 package org.springframework.cloud.dataflow.server.db.migration;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.flywaydb.core.api.callback.Context;
@@ -71,6 +72,7 @@ public abstract class AbstractBaselineCallback extends AbstractCallback {
 			logger.info("Detected old Data Flow schema, doing baseline.");
 			commands.addAll(dropIndexes());
 			commands.addAll(changeAppRegistrationTable());
+			commands.addAll(changeUriRegistryTable());
 			commands.addAll(changeStreamDefinitionsTable());
 			commands.addAll(changeTaskDefinitionsTable());
 			commands.addAll(changeAuditRecordsTable());
@@ -95,6 +97,10 @@ public abstract class AbstractBaselineCallback extends AbstractCallback {
 	 * @return the list of sql commands
 	 */
 	public abstract List<SqlCommand> changeAppRegistrationTable();
+
+	public List<SqlCommand> changeUriRegistryTable() {
+		return Collections.emptyList();
+	}
 
 	/**
 	 * Change stream definitions table.
