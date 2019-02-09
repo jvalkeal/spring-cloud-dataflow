@@ -151,10 +151,17 @@ public class PostgresBeforeBaseline extends AbstractBaselineCallback {
 	}
 
 	@Override
+	public List<SqlCommand> changeUriRegistryTable() {
+		return Arrays.asList(
+				new PostgresMigrateUriRegistrySqlCommand());
+	}
+
+	@Override
 	public List<SqlCommand> changeStreamDefinitionsTable() {
 		return Arrays.asList(
 				SqlCommand.from(CREATE_STREAM_DEFINITIONS_TMP_TABLE),
-				SqlCommand.from(INSERT_STREAM_DEFINITIONS_DATA),
+				// need to run copy command programmatically
+				new PostgresMigrateStreamDefinitionsSqlCommand(),
 				SqlCommand.from(DROP_STREAM_DEFINITIONS_TABLE),
 				SqlCommand.from(RENAME_STREAM_DEFINITIONS_TMP_TABLE));
 	}
@@ -163,7 +170,8 @@ public class PostgresBeforeBaseline extends AbstractBaselineCallback {
 	public List<SqlCommand> changeTaskDefinitionsTable() {
 		return Arrays.asList(
 				SqlCommand.from(CREATE_TASK_DEFINITIONS_TMP_TABLE),
-				SqlCommand.from(INSERT_TASK_DEFINITIONS_DATA),
+				// need to run copy command programmatically
+				new PostgresMigrateTaskDefinitionsSqlCommand(),
 				SqlCommand.from(DROP_TASK_DEFINITIONS_TABLE),
 				SqlCommand.from(RENAME_TASK_DEFINITIONS_TMP_TABLE));
 	}
