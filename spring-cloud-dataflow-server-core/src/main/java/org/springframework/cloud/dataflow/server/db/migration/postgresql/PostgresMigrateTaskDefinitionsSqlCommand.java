@@ -75,7 +75,6 @@ public class PostgresMigrateTaskDefinitionsSqlCommand extends SqlCommand {
 
 		}
 
-
 		if (autoCommit != null) {
 			try {
 				connection.setAutoCommit(autoCommit);
