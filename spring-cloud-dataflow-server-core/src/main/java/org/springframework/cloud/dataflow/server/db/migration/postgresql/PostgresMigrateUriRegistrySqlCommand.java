@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,19 +20,31 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
+import org.postgresql.core.SqlCommand;
+
 import org.springframework.cloud.dataflow.server.db.migration.AbstractMigrateUriRegistrySqlCommand;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.support.SqlLobValue;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 
+/**
+ * {@code postgres} related {@link SqlCommand} for migrating data from
+ * {@code URI_REGISTRY} into {@code app_registration}.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegistrySqlCommand {
 
 	@Override
 	public void handle(JdbcTemplate jdbcTemplate, Connection connection) {
+		// we need to disable connection autocommit for this operation
+		// as with postgres a CLOB cannot be inserted with autocommit enabled.
 		Boolean autoCommit = null;
 		try {
 			autoCommit = connection.getAutoCommit();
 		} catch (SQLException e) {
+			throw new RuntimeException("cannot access connection autocommit setting", e);
 		}
 		if (autoCommit != null) {
 			try {
@@ -45,6 +57,7 @@ public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegi
 			try {
 				connection.setAutoCommit(autoCommit);
 			} catch (SQLException e) {
+				throw new RuntimeException("cannot access connection autocommit setting", e);
 			}
 		}
 	}
@@ -55,21 +68,12 @@ public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegi
 		lobHandler.setWrapAsLob(true);
 		for (AppRegistrationMigrationData d : data) {
 			Long nextVal = jdbcTemplate.queryForObject("select nextval('hibernate_sequence')", Long.class);
-
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					new Object[] {
-					nextVal, 0, false, new SqlLobValue(d.getMetadataUri(), lobHandler), d.getName(), d.getType(),
-					new SqlLobValue(d.getUri(), lobHandler), 0}, new int[] {
-							Types.BIGINT, Types.BIGINT, Types.BOOLEAN, Types.CLOB,
-							Types.VARCHAR, Types.INTEGER, Types.CLOB, Types.VARCHAR
-					});
-
-
-//			jdbcTemplate.update(
-//					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-//					nextVal, 0, false, new SqlLobValue(d.getMetadataUri()), d.getName(), d.getType(),
-//					new SqlLobValue(d.getUri()), 0);
+					new Object[] { nextVal, 0, false, new SqlLobValue(d.getMetadataUri(), lobHandler), d.getName(),
+							d.getType(), new SqlLobValue(d.getUri(), lobHandler), 0 },
+					new int[] { Types.BIGINT, Types.BIGINT, Types.BOOLEAN, Types.CLOB, Types.VARCHAR, Types.INTEGER,
+							Types.CLOB, Types.VARCHAR });
 		}
 	}
 }

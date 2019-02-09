@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.support.SqlLobValue;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 
+/**
+ * {@link SqlCommand} copying data from {@code STREAM_DEFINITIONS} table into
+ * {@code stream_definitions_tmp} table handling correct way to use CLOB with
+ * postgres.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class PostgresMigrateStreamDefinitionsSqlCommand extends SqlCommand {
 
 	@Override
@@ -40,11 +48,13 @@ public class PostgresMigrateStreamDefinitionsSqlCommand extends SqlCommand {
 		try {
 			autoCommit = connection.getAutoCommit();
 		} catch (SQLException e) {
+			throw new RuntimeException("cannot access connection autocommit setting", e);
 		}
 		if (autoCommit != null) {
 			try {
 				connection.setAutoCommit(false);
 			} catch (SQLException e) {
+				throw new RuntimeException("cannot access connection autocommit setting", e);
 			}
 		}
 
@@ -58,22 +68,17 @@ public class PostgresMigrateStreamDefinitionsSqlCommand extends SqlCommand {
 		lobHandler.setWrapAsLob(true);
 
 		for (Entry<String, String> d : data.entrySet()) {
-
-			jdbcTemplate.update("insert into stream_definitions_tmp (definition_name, definition) values (?,?)", new Object[] {
-					d.getKey(), new SqlLobValue(d.getValue(), lobHandler)
-			}, new int[] {
-					Types.VARCHAR, Types.CLOB
-			});
-
+			jdbcTemplate.update("insert into stream_definitions_tmp (definition_name, definition) values (?,?)",
+					new Object[] { d.getKey(), new SqlLobValue(d.getValue(), lobHandler) },
+					new int[] { Types.VARCHAR, Types.CLOB });
 		}
-
 
 		if (autoCommit != null) {
 			try {
 				connection.setAutoCommit(autoCommit);
 			} catch (SQLException e) {
+				throw new RuntimeException("cannot access connection autocommit setting", e);
 			}
 		}
 	}
-
 }

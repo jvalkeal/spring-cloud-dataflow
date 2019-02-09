@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,18 @@ package org.springframework.cloud.dataflow.server.db.migration.sqlserver;
 
 import java.util.List;
 
+import org.postgresql.core.SqlCommand;
+
 import org.springframework.cloud.dataflow.server.db.migration.AbstractMigrateUriRegistrySqlCommand;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+/**
+ * {@code mssql} related {@link SqlCommand} for migrating data from
+ * {@code URI_REGISTRY} into {@code app_registration}.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class MsSqlMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegistrySqlCommand {
 
 	@Override
