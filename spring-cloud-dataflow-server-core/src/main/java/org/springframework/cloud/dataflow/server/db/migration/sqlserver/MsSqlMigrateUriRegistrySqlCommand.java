@@ -24,11 +24,11 @@ public class MsSqlMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegistr
 
 	@Override
 	protected void updateAppRegistration(JdbcTemplate jdbcTemplate, List<AppRegistrationMigrationData> data) {
-		Long nextVal = 0l;
 		for (AppRegistrationMigrationData d : data) {
+			Long nextVal = jdbcTemplate.queryForObject("select next value for hibernate_sequence", Long.class);
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					nextVal++, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
+					nextVal, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
 		}
 	}
 }

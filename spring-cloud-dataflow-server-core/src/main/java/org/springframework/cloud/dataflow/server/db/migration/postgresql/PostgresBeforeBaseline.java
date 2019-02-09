@@ -159,7 +159,8 @@ public class PostgresBeforeBaseline extends AbstractBaselineCallback {
 	public List<SqlCommand> changeStreamDefinitionsTable() {
 		return Arrays.asList(
 				SqlCommand.from(CREATE_STREAM_DEFINITIONS_TMP_TABLE),
-				SqlCommand.from(INSERT_STREAM_DEFINITIONS_DATA),
+//				SqlCommand.from(INSERT_STREAM_DEFINITIONS_DATA),
+				new PostgresMigrateStreamDefinitionsSqlCommand(),
 				SqlCommand.from(DROP_STREAM_DEFINITIONS_TABLE),
 				SqlCommand.from(RENAME_STREAM_DEFINITIONS_TMP_TABLE));
 	}
@@ -168,7 +169,8 @@ public class PostgresBeforeBaseline extends AbstractBaselineCallback {
 	public List<SqlCommand> changeTaskDefinitionsTable() {
 		return Arrays.asList(
 				SqlCommand.from(CREATE_TASK_DEFINITIONS_TMP_TABLE),
-				SqlCommand.from(INSERT_TASK_DEFINITIONS_DATA),
+//				SqlCommand.from(INSERT_TASK_DEFINITIONS_DATA),
+				new PostgresMigrateTaskDefinitionsSqlCommand(),
 				SqlCommand.from(DROP_TASK_DEFINITIONS_TABLE),
 				SqlCommand.from(RENAME_TASK_DEFINITIONS_TMP_TABLE));
 	}

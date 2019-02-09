@@ -24,11 +24,11 @@ public class OracleMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegist
 
 	@Override
 	protected void updateAppRegistration(JdbcTemplate jdbcTemplate, List<AppRegistrationMigrationData> data) {
-		Long nextVal = 0l;
 		for (AppRegistrationMigrationData d : data) {
+			Long nextVal = jdbcTemplate.queryForObject("select hibernate_sequence.nextval from dual", Long.class);
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					nextVal++, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
+					nextVal, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
 		}
 	}
 }

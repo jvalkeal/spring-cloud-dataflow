@@ -15,6 +15,7 @@
  */
 package org.springframework.cloud.dataflow.server.db.migration;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,7 @@ public abstract class AbstractMigrateUriRegistrySqlCommand extends SqlCommand {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMigrateUriRegistrySqlCommand.class);
 
 	@Override
-	public void handle(JdbcTemplate jdbcTemplate) {
+	public void handle(JdbcTemplate jdbcTemplate, Connection connection) {
 		boolean migrate = false;
 		try {
 			jdbcTemplate.execute("select 1 from URI_REGISTRY");

@@ -15,20 +15,61 @@
  */
 package org.springframework.cloud.dataflow.server.db.migration.postgresql;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
 
 import org.springframework.cloud.dataflow.server.db.migration.AbstractMigrateUriRegistrySqlCommand;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.support.SqlLobValue;
+import org.springframework.jdbc.support.lob.DefaultLobHandler;
 
 public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegistrySqlCommand {
 
 	@Override
+	public void handle(JdbcTemplate jdbcTemplate, Connection connection) {
+		Boolean autoCommit = null;
+		try {
+			autoCommit = connection.getAutoCommit();
+		} catch (SQLException e) {
+		}
+		if (autoCommit != null) {
+			try {
+				connection.setAutoCommit(false);
+			} catch (SQLException e) {
+			}
+		}
+		super.handle(jdbcTemplate, connection);
+		if (autoCommit != null) {
+			try {
+				connection.setAutoCommit(autoCommit);
+			} catch (SQLException e) {
+			}
+		}
+	}
+
+	@Override
 	protected void updateAppRegistration(JdbcTemplate jdbcTemplate, List<AppRegistrationMigrationData> data) {
-		Long nextVal = jdbcTemplate.queryForObject("select nextval('hibernate_sequence')", Long.class);
+		DefaultLobHandler lobHandler = new DefaultLobHandler();
+		lobHandler.setWrapAsLob(true);
 		for (AppRegistrationMigrationData d : data) {
+			Long nextVal = jdbcTemplate.queryForObject("select nextval('hibernate_sequence')", Long.class);
+
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					nextVal, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
+					new Object[] {
+					nextVal, 0, false, new SqlLobValue(d.getMetadataUri(), lobHandler), d.getName(), d.getType(),
+					new SqlLobValue(d.getUri(), lobHandler), 0}, new int[] {
+							Types.BIGINT, Types.BIGINT, Types.BOOLEAN, Types.CLOB,
+							Types.VARCHAR, Types.INTEGER, Types.CLOB, Types.VARCHAR
+					});
+
+
+//			jdbcTemplate.update(
+//					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
+//					nextVal, 0, false, new SqlLobValue(d.getMetadataUri()), d.getName(), d.getType(),
+//					new SqlLobValue(d.getUri()), 0);
 		}
 	}
 }

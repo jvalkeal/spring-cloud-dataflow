@@ -15,6 +15,7 @@
  */
 package org.springframework.cloud.dataflow.server.db.migration;
 
+import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
 
@@ -110,7 +111,7 @@ public class SqlCommand {
 	 *
 	 * @param jdbcTemplate the jdbc template
 	 */
-	public void handle(JdbcTemplate jdbcTemplate) {
+	public void handle(JdbcTemplate jdbcTemplate, Connection connection) {
 		// expected to get handled in a sub-class
 		throw new UnsupportedOperationException("Not supported in a base class");
 	}

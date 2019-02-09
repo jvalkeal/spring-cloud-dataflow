@@ -50,7 +50,7 @@ public class SqlCommandsRunner {
 
 		for (SqlCommand command : commands) {
 			if (command.canHandleInJdbcTemplate()) {
-				command.handle(jdbcTemplate);
+				command.handle(jdbcTemplate, connection);
 			}
 			else {
 				if(!ObjectUtils.isEmpty(command.getSuppressedErrorCodes())) {

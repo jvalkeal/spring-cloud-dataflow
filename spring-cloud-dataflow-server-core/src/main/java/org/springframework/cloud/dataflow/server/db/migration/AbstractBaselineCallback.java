@@ -16,7 +16,6 @@
 package org.springframework.cloud.dataflow.server.db.migration;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.flywaydb.core.api.callback.Context;
