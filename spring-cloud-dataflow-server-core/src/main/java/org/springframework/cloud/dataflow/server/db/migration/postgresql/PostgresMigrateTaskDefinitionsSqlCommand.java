@@ -48,11 +48,13 @@ public class PostgresMigrateTaskDefinitionsSqlCommand extends SqlCommand {
 		try {
 			autoCommit = connection.getAutoCommit();
 		} catch (SQLException e) {
+			throw new RuntimeException("cannot access connection autocommit setting", e);
 		}
 		if (autoCommit != null) {
 			try {
 				connection.setAutoCommit(false);
 			} catch (SQLException e) {
+				throw new RuntimeException("cannot access connection autocommit setting", e);
 			}
 		}
 
@@ -66,19 +68,18 @@ public class PostgresMigrateTaskDefinitionsSqlCommand extends SqlCommand {
 		lobHandler.setWrapAsLob(true);
 
 		for (Entry<String, String> d : data.entrySet()) {
-
 			jdbcTemplate.update("insert into task_definitions_tmp (definition_name, definition) values (?,?)", new Object[] {
 					d.getKey(), new SqlLobValue(d.getValue(), lobHandler)
 			}, new int[] {
 					Types.VARCHAR, Types.CLOB
 			});
-
 		}
 
 		if (autoCommit != null) {
 			try {
 				connection.setAutoCommit(autoCommit);
 			} catch (SQLException e) {
+				throw new RuntimeException("cannot access connection autocommit setting", e);
 			}
 		}
 	}
