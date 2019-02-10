@@ -40,6 +40,11 @@ public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegi
 	public void handle(JdbcTemplate jdbcTemplate, Connection connection) {
 		// we need to disable connection autocommit for this operation
 		// as with postgres a CLOB cannot be inserted with autocommit enabled.
+
+		// TODO: should think if this same autocommit logic could get extracted to
+		//       to some sort of base impl as it's used in PostgresMigrateTaskDefinitionsSqlCommand
+		//       and PostgresMigrateStreamDefinitionsSqlCommand in a same way
+
 		Boolean autoCommit = null;
 		try {
 			autoCommit = connection.getAutoCommit();
@@ -50,6 +55,7 @@ public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegi
 			try {
 				connection.setAutoCommit(false);
 			} catch (SQLException e) {
+				throw new RuntimeException("cannot access connection autocommit setting", e);
 			}
 		}
 		super.handle(jdbcTemplate, connection);

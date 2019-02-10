@@ -104,15 +104,19 @@ public abstract class AbstractMigrateUriRegistrySqlCommand extends SqlCommand {
 				String key = split[0] + split[1];
 				armd = data.getOrDefault(key, new AppRegistrationMigrationData());
 				if (split.length == 2) {
+					// we got *.* first
 					armd.setName(split[1]);
 					armd.setType(ApplicationType.valueOf(split[0]).ordinal());
 					armd.setUri(uri);
 				}
 				else {
+					// we got *.*.metadata first
 					armd.setName(split[1]);
 					armd.setType(ApplicationType.valueOf(split[0]).ordinal());
 					armd.setMetadataUri(uri);
 				}
+				// either *.* or *.*.metadata, put it to map, either initial
+				// insert or update
 				data.put(key, armd);
 			}
 		});
