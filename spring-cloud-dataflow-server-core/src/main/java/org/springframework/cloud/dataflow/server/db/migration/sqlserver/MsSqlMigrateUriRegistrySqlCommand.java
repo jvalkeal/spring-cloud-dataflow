@@ -37,7 +37,8 @@ public class MsSqlMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegistr
 			Long nextVal = jdbcTemplate.queryForObject("select next value for hibernate_sequence", Long.class);
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					nextVal, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
+					nextVal, 0, d.isDefaultVersion() ? 1 : 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(),
+					d.getVersion());
 		}
 	}
 }

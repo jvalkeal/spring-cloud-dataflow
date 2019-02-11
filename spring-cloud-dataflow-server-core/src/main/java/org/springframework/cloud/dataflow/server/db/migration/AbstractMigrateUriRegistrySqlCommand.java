@@ -17,7 +17,9 @@ package org.springframework.cloud.dataflow.server.db.migration;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.dataflow.core.ApplicationType;
+import org.springframework.cloud.dataflow.registry.support.AppResourceCommon;
+import org.springframework.cloud.deployer.resource.maven.MavenProperties;
+import org.springframework.cloud.deployer.resource.support.DelegatingResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -81,6 +86,11 @@ public abstract class AbstractMigrateUriRegistrySqlCommand extends SqlCommand {
 	 */
 	protected List<AppRegistrationMigrationData> createAppRegistrationMigrationData(JdbcTemplate jdbcTemplate) {
 		Map<String, AppRegistrationMigrationData> data = new HashMap<>();
+		// to get version using same existing logic
+		AppResourceCommon arc = new AppResourceCommon(new MavenProperties(), new DelegatingResourceLoader());
+		// track that we only add default version for one by just giving it to first one
+		// just to be on a safe side
+		Collection<String> defaultVersions = new HashSet<>();
 
 		// format for old URI_REGISTRY is:
 		// +-------------------------------+-------------------------------------------------------------------------------------------------+
@@ -103,11 +113,16 @@ public abstract class AbstractMigrateUriRegistrySqlCommand extends SqlCommand {
 			if (split.length == 2 || split.length == 3) {
 				String key = split[0] + split[1];
 				armd = data.getOrDefault(key, new AppRegistrationMigrationData());
+				if (!defaultVersions.contains(key)) {
+					armd.setDefaultVersion(true);
+					defaultVersions.add(key);
+				}
 				if (split.length == 2) {
 					// we got *.* first
 					armd.setName(split[1]);
 					armd.setType(ApplicationType.valueOf(split[0]).ordinal());
 					armd.setUri(uri);
+					armd.setVersion(arc.getResourceVersion(arc.getResource(uri)));
 				}
 				else {
 					// we got *.*.metadata first
@@ -143,6 +158,7 @@ public abstract class AbstractMigrateUriRegistrySqlCommand extends SqlCommand {
 		private String version;
 		private String uri;
 		private String metadataUri;
+		private boolean defaultVersion;
 
 		public String getName() {
 			return name;
@@ -182,6 +198,14 @@ public abstract class AbstractMigrateUriRegistrySqlCommand extends SqlCommand {
 
 		public void setMetadataUri(String metadataUri) {
 			this.metadataUri = metadataUri;
+		}
+
+		public boolean isDefaultVersion() {
+			return defaultVersion;
+		}
+
+		public void setDefaultVersion(boolean defaultVersion) {
+			this.defaultVersion = defaultVersion;
 		}
 	}
 }

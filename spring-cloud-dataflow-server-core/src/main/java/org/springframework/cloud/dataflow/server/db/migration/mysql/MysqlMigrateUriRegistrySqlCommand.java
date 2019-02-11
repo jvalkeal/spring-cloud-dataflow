@@ -35,12 +35,14 @@ public class MysqlMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegistr
 	protected void updateAppRegistration(JdbcTemplate jdbcTemplate, List<AppRegistrationMigrationData> data) {
 		// get value from hibernate sequence table and update it later
 		// depending on how many updates we did
-		Long nextVal = jdbcTemplate.queryForObject("select next_val as id_val from hibernate_sequence", Long.class);
+		long nextVal = jdbcTemplate.queryForObject("select next_val as id_val from hibernate_sequence", Long.class);
+		long nextValUpdates = nextVal;
 		for (AppRegistrationMigrationData d : data) {
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					nextVal++, 0, 0, d.getMetadataUri(), d.getName(), d.getType(), d.getUri(), 0);
+					nextValUpdates++, 0, d.isDefaultVersion() ? 1 : 0, d.getMetadataUri(), d.getName(), d.getType(),
+					d.getUri(), d.getVersion());
 		}
-		jdbcTemplate.update("update hibernate_sequence set next_val= ? where next_val=?", nextVal, nextVal - 1);
+		jdbcTemplate.update("update hibernate_sequence set next_val= ? where next_val=?", nextValUpdates, nextVal);
 	}
 }

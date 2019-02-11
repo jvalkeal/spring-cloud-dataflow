@@ -76,8 +76,8 @@ public class PostgresMigrateUriRegistrySqlCommand extends AbstractMigrateUriRegi
 			Long nextVal = jdbcTemplate.queryForObject("select nextval('hibernate_sequence')", Long.class);
 			jdbcTemplate.update(
 					"insert into app_registration (id, object_version, default_version, metadata_uri, name, type, uri, version) values (?,?,?,?,?,?,?,?)",
-					new Object[] { nextVal, 0, false, new SqlLobValue(d.getMetadataUri(), lobHandler), d.getName(),
-							d.getType(), new SqlLobValue(d.getUri(), lobHandler), 0 },
+					new Object[] { nextVal, 0, d.isDefaultVersion(), new SqlLobValue(d.getMetadataUri(), lobHandler),
+							d.getName(), d.getType(), new SqlLobValue(d.getUri(), lobHandler), d.getVersion() },
 					new int[] { Types.BIGINT, Types.BIGINT, Types.BOOLEAN, Types.CLOB, Types.VARCHAR, Types.INTEGER,
 							Types.CLOB, Types.VARCHAR });
 		}
