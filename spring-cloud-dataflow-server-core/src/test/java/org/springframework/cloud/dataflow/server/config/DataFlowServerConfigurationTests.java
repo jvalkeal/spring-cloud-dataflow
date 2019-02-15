@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -36,6 +38,7 @@ import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfigu
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.dataflow.server.EnableDataFlowServer;
 import org.springframework.cloud.dataflow.server.config.features.SchedulerConfiguration;
+import org.springframework.cloud.dataflow.server.config.web.Jackson2ObjectMapperConfiguration;
 import org.springframework.cloud.dataflow.server.config.web.WebConfiguration;
 import org.springframework.cloud.dataflow.server.service.StreamValidationService;
 import org.springframework.cloud.dataflow.server.service.TaskExecutionService;
@@ -54,8 +57,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.hateoas.hal.Jackson2HalModule.HalHandlerInstantiator;
 import org.springframework.security.authentication.AuthenticationManager;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -78,12 +83,13 @@ public class DataFlowServerConfigurationTests {
 	public void setup() {
 		context = new AnnotationConfigApplicationContext();
 		context.setId("testDataFlowConfig");
-		context.register(DataFlowServerConfigurationTests.TestConfiguration.class, RedisAutoConfiguration.class,
-				SecurityAutoConfiguration.class, DataFlowServerAutoConfiguration.class,
-				DataFlowControllerAutoConfiguration.class, DataSourceAutoConfiguration.class,
-				DataFlowServerConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
-				RestTemplateAutoConfiguration.class, HibernateJpaAutoConfiguration.class, WebConfiguration.class,
-				SchedulerConfiguration.class, JacksonAutoConfiguration.class, SimpleTaskAutoConfiguration.class,
+		context.register(DataFlowServerConfigurationTests.TestConfiguration.class,
+				Jackson2ObjectMapperConfiguration.class, RedisAutoConfiguration.class, SecurityAutoConfiguration.class,
+				DataFlowServerAutoConfiguration.class, DataFlowControllerAutoConfiguration.class,
+				DataSourceAutoConfiguration.class, DataFlowServerConfiguration.class,
+				PropertyPlaceholderAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+				HibernateJpaAutoConfiguration.class, WebConfiguration.class, SchedulerConfiguration.class,
+				JacksonAutoConfiguration.class, SimpleTaskAutoConfiguration.class,
 				ResourceLoadingAutoConfiguration.class);
 		environment = new StandardEnvironment();
 		propertySources = environment.getPropertySources();
@@ -154,6 +160,15 @@ public class DataFlowServerConfigurationTests {
 		Object baseUri = TestUtils.readField("baseUri", skipperClient);
 		assertNotNull(baseUri);
 		assertTrue(baseUri.equals("http://fakehost:1234/api"));
+
+		ObjectMapper objectMapper = context.getBean(ObjectMapper.class);
+		assertFalse(objectMapper.getDeserializationConfig()
+				.hasDeserializationFeatures(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES.getMask()));
+		assertTrue(objectMapper.getRegisteredModuleIds().contains("org.springframework.hateoas.hal.Jackson2HalModule"));
+		assertThat(objectMapper.getDeserializationConfig().getHandlerInstantiator())
+				.isInstanceOf(HalHandlerInstantiator.class);
+		assertThat(objectMapper.getSerializationConfig().getHandlerInstantiator())
+				.isInstanceOf(HalHandlerInstantiator.class);
 	}
 
 	@EnableDataFlowServer

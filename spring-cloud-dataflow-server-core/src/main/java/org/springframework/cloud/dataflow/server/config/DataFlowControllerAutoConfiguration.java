@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -111,9 +110,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.hateoas.EntityLinks;
-import org.springframework.hateoas.core.AnnotationRelProvider;
-import org.springframework.hateoas.hal.HalConfiguration;
-import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ForkJoinPoolFactoryBean;
@@ -350,13 +346,6 @@ public class DataFlowControllerAutoConfiguration {
 		@Bean
 		public SkipperClient skipperClient(SkipperClientProperties properties,
 				RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
-
-			// TODO (Tzolov) review the manual Hal convertion configuration
-			objectMapper.registerModule(new Jackson2HalModule());
-			objectMapper.setHandlerInstantiator(new Jackson2HalModule.HalHandlerInstantiator(
-					new AnnotationRelProvider(), null, null, new HalConfiguration()));
-			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
 			RestTemplate restTemplate = restTemplateBuilder
 					.errorHandler(new SkipperClientResponseErrorHandler(objectMapper))
 					.interceptors(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor())

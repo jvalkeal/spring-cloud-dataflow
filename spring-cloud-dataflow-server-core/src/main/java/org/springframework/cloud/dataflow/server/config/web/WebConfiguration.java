@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,23 @@ package org.springframework.cloud.dataflow.server.config.web;
 
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import javax.servlet.ServletContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.h2.tools.Server;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
-import org.springframework.cloud.dataflow.rest.job.support.ISO8601DateFormatWithMilliSeconds;
-import org.springframework.cloud.dataflow.server.job.support.ExecutionContextJacksonMixIn;
-import org.springframework.cloud.dataflow.server.job.support.StepExecutionJacksonMixIn;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.hateoas.core.DefaultRelProvider;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -62,6 +54,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @ConditionalOnWebApplication
+@Import(Jackson2ObjectMapperConfiguration.class)
 public class WebConfiguration implements ServletContextInitializer, ApplicationListener<ContextClosedEvent> {
 
 	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(WebConfiguration.class);
@@ -120,19 +113,6 @@ public class WebConfiguration implements ServletContextInitializer, ApplicationL
 			public void configurePathMatch(PathMatchConfigurer configurer) {
 				configurer.setUseSuffixPatternMatch(false);
 			}
-		};
-	}
-
-	@Bean
-	public Jackson2ObjectMapperBuilderCustomizer dataflowObjectMapperBuilderCustomizer() {
-		return (builder) -> {
-			builder.dateFormat(new ISO8601DateFormatWithMilliSeconds(TimeZone.getDefault(), Locale.getDefault(), true));
-			// apply SCDF Batch Mixins to
-			// ignore the JobExecution in StepExecution to prevent infinite loop.
-			// https://github.com/spring-projects/spring-hateoas/issues/333
-			builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
-			builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
-			builder.modules(new JavaTimeModule());
 		};
 	}
 
