@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - SchedulerTaskLauncherApplication",
+            "request": "launch",
+            "mainClass": "org.springframework.cloud.dataflow.scheduler.launcher.SchedulerTaskLauncherApplication",
+            "projectName": "spring-cloud-dataflow-scheduler-task-launcher"
+        },
+        {
+            "type": "java",
             "name": "SCDF default",
             "request": "launch",
             "cwd": "${workspaceFolder}",

@@ -31,6 +31,15 @@ import org.springframework.cloud.dataflow.rest.client.dsl.StreamBuilder;
 import org.springframework.cloud.dataflow.rest.util.HttpClientConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
+import org.springframework.security.oauth2.client.endpoint.DefaultClientCredentialsTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2ClientCredentialsGrantRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -51,6 +60,12 @@ public class DataFlowClientAutoConfiguration {
 	@Autowired(required = false)
 	private RestTemplate restTemplate;
 
+	@Autowired
+	private ClientRegistrationRepository clientRegistrations;
+
+	@Autowired
+	private OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsTokenResponseClient;
+
 	@Bean
 	@ConditionalOnMissingBean(DataFlowOperations.class)
 	public DataFlowOperations dataFlowOperations() throws Exception{
@@ -61,6 +76,14 @@ public class DataFlowClientAutoConfiguration {
 		if (StringUtils.hasText(this.properties.getAuthentication().getAccessToken())) {
 			template.getInterceptors().add(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(this.properties.getAuthentication().getAccessToken()));
 			logger.debug("Configured OAuth2 Access Token for accessing the Data Flow Server");
+		}
+		else if (StringUtils.hasText(this.properties.getAuthentication().getOauth2ClientCredentialsClientId())) {
+			final ClientRegistration clientRegistration = clientRegistrations.findByRegistrationId("default");
+			final OAuth2ClientCredentialsGrantRequest grantRequest = new OAuth2ClientCredentialsGrantRequest(clientRegistration);
+			final OAuth2AccessTokenResponse res = clientCredentialsTokenResponseClient.getTokenResponse(grantRequest);
+			String accessTokenValue = res.getAccessToken().getTokenValue();
+			template.getInterceptors().add(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(accessTokenValue));
+			logger.debug("Configured OAuth2 Client Credentials for accessing the Data Flow Server");
 		}
 		else if(!StringUtils.isEmpty(properties.getAuthentication().getBasic().getUsername()) &&
 				!StringUtils.isEmpty(properties.getAuthentication().getBasic().getPassword())){
@@ -77,6 +100,29 @@ public class DataFlowClientAutoConfiguration {
 	@ConditionalOnMissingBean(StreamBuilder.class)
 	public StreamBuilder streamBuilder(DataFlowOperations dataFlowOperations){
 		return Stream.builder(dataFlowOperations);
+	}
+
+	@Configuration
+	static class ClientCredentialsConfiguration {
+
+		@Bean
+		public InMemoryClientRegistrationRepository clientRegistrationRepository(
+			DataFlowClientProperties properties) {
+			final ClientRegistration clientRegistration = ClientRegistration
+					.withRegistrationId("default")
+					.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+					.tokenUri(properties.getAuthentication().getOauth2ClientCredentialsTokenUri())
+					.clientId(properties.getAuthentication().getOauth2ClientCredentialsClientId())
+					.clientSecret(properties.getAuthentication().getOauth2ClientCredentialsClientSecret())
+					.scope(properties.getAuthentication().getOauth2ClientCredentialsScopes())
+					.build();
+			return new InMemoryClientRegistrationRepository(clientRegistration);
+		}
+
+		@Bean
+		OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsTokenResponseClient() {
+			return new DefaultClientCredentialsTokenResponseClient();
+		}
 	}
 
 }
