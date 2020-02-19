@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cloud.dataflow.server.db.migration;
+package org.springframework.cloud.dataflow.server.db.migration.xxx;
 
 import java.util.List;
 
@@ -21,7 +21,6 @@ import org.flywaydb.core.api.callback.Callback;
 import org.flywaydb.core.api.callback.Context;
 import org.flywaydb.core.api.callback.Event;
 
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -72,14 +71,14 @@ public abstract class AbstractCallback implements Callback {
 			runner.execute(context.getConnection(), getCommands(event, context));
 		}
 		catch(Exception sqe) {
-			if (sqe instanceof BadSqlGrammarException) {
-				throw new DataFlowSchemaMigrationException(
-						"An exception occured during migration.  This may indicate " +
-								"that you have run Spring Batch Jobs or Spring Cloud " +
-								"Tasks prior to running Spring Cloud Data Flow first. " +
-								"Data Flow must create these tables.", sqe);
+			// if (sqe instanceof BadSqlGrammarException) {
+			// 	throw new DataFlowSchemaMigrationException(
+			// 			"An exception occured during migration.  This may indicate " +
+			// 					"that you have run Spring Batch Jobs or Spring Cloud " +
+			// 					"Tasks prior to running Spring Cloud Data Flow first. " +
+			// 					"Data Flow must create these tables.", sqe);
 
-			}
+			// }
 			throw sqe;
 		}
 	}
