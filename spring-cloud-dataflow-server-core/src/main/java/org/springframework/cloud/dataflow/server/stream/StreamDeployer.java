@@ -71,6 +71,8 @@ public interface StreamDeployer {
 	 */
 	List<AppStatus> getStreamStatuses(String streamName);
 
+	Map<String, List<AppStatus>> getStreamStatuses(String[] streamName);
+
 	/**
 	 * @return the runtime environment info for deploying streams.
 	 */

@@ -66,6 +66,51 @@ public class RuntimeStreamsController {
 	}
 
 	@RequestMapping
+	public List<StreamStatus> streamStatusx(@RequestParam("names") String[] streamNames) {
+		Map<String, List<AppStatus>> streamStatuses = this.streamDeployer.getStreamStatuses(streamNames);
+		return streamStatuses.entrySet().stream()
+			.map(e -> {
+				StreamStatus streamStatus = new StreamStatus();
+				streamStatus.setName(e.getKey());
+				streamStatus.setApplications(new ArrayList<>());
+				List<AppStatus> appStatuses = e.getValue();
+				if (!CollectionUtils.isEmpty(appStatuses)) {
+					for (AppStatus appStatus : appStatuses) {
+						try {
+							StreamStatus.Application application = new StreamStatus.Application();
+							streamStatus.getApplications().add(application);
+							application.setInstances(new ArrayList<>());
+							application.setId(appStatus.getDeploymentId());
+
+							for (Map.Entry<String, AppInstanceStatus> instanceEntry : appStatus.getInstances().entrySet()) {
+								AppInstanceStatus appInstanceStatus = instanceEntry.getValue();
+								StreamStatus.Instance instance = new StreamStatus.Instance();
+								application.getInstances().add(instance);
+
+								instance.setId(appInstanceStatus.getId());
+								instance.setGuid(getAppInstanceGuid(appInstanceStatus));
+								instance.setState(appInstanceStatus.getState().name());
+								instance.setProperties(Collections.emptyMap());
+
+								application.setName(appInstanceStatus.getAttributes()
+										.get(StreamRuntimePropertyKeys.ATTRIBUTE_SKIPPER_APPLICATION_NAME));
+								streamStatus.setVersion(appInstanceStatus.getAttributes()
+										.get(StreamRuntimePropertyKeys.ATTRIBUTE_SKIPPER_RELEASE_VERSION));
+							}
+						}
+						catch (Throwable throwable) {
+							logger.warn("Failed to retrieve runtime status for " + appStatus.getDeploymentId(), throwable);
+						}
+					}
+				}
+				return streamStatus;
+			})
+			.collect(Collectors.toList())
+			;
+	}
+
+
+	// @RequestMapping
 	public List<StreamStatus> streamStatus(@RequestParam("names") String[] streamNames) {
 		try {
 			return Stream.of(streamNames).map(this::toStreamStatus).collect(Collectors.toList());
