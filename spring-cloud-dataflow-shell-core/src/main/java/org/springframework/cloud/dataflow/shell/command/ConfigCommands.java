@@ -26,7 +26,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpRequestInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,9 +73,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -163,6 +159,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 	@Autowired(required = false)
 	private OAuth2ClientProperties oauth2ClientProperties;
 
+	private static final Authentication DEFAULT_PRINCIPAL = createAuthentication("dataflow-shell-principal");
+
 	@Autowired
 	public void setUserInput(UserInput userInput) {
 		this.userInput = userInput;
@@ -185,79 +183,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 
 	@Bean
 	public RestTemplate restTemplate(Environment ev) {
-		// RestTemplate template = DataFlowTemplate.getDefaultDataflowRestTemplate();
-		// template.getInterceptors().add(bearerTokenResolvingInterceptor(null));
-		// return template;
 		return DataFlowTemplate.getDefaultDataflowRestTemplate();
-	}
-
-	// @Bean
-	// public ClientRegistrationRepository shellClientRegistrationRepository(OAuth2ClientProperties properties) {
-	// 	List<ClientRegistration> registrations = new ArrayList<>(
-	// 			OAuth2ClientPropertiesRegistrationAdapter.getClientRegistrations(properties).values());
-	// 	return new InMemoryClientRegistrationRepository(registrations);
-	// }
-
-	// @Bean
-	// public OAuth2AuthorizedClientService shellAuthorizedClientService(ClientRegistrationRepository shellClientRegistrationRepository) {
-	// 	return new InMemoryOAuth2AuthorizedClientService(shellClientRegistrationRepository);
-	// }
-
-	// @Bean
-	// public OAuth2AuthorizedClientManager authorizedClientManager(
-	// 		ClientRegistrationRepository shellClientRegistrationRepository,
-	// 		OAuth2AuthorizedClientService shellAuthorizedClientService) {
-	// 	AuthorizedClientServiceOAuth2AuthorizedClientManager manager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(
-	// 		shellClientRegistrationRepository, shellAuthorizedClientService);
-	// 	OAuth2AuthorizedClientProvider authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder()
-	// 		.password()
-	// 		.refreshToken()
-	// 		.build();
-	// 	manager.setAuthorizedClientProvider(authorizedClientProvider);
-	// 	manager.setContextAttributesMapper(request -> {
-	// 		Map<String, Object> contextAttributes = new HashMap<>();
-	// 		request.getAttributes().forEach((k, v) -> {
-	// 			if (OAuth2AuthorizationContext.USERNAME_ATTRIBUTE_NAME.equals(k)
-	// 					|| OAuth2AuthorizationContext.PASSWORD_ATTRIBUTE_NAME.equals(k)) {
-	// 				contextAttributes.put(k, v);
-	// 			}
-	// 		});
-	// 		return contextAttributes;
-	// 	});
-	// 	return manager;
-	// }
-
-	// @Bean
-	// public ClientHttpRequestInterceptor bearerTokenResolvingInterceptor(OAuth2AuthorizedClientManager authorizedClientManager) {
-	// 	OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId("dataflow-shell")
-	// 			.principal(DEFAULT_PRINCIPAL)
-	// 			.attribute(OAuth2AuthorizationContext.USERNAME_ATTRIBUTE_NAME, "admin@scdftestorg2.onmicrosoft.com")
-	// 			.attribute(OAuth2AuthorizationContext.PASSWORD_ATTRIBUTE_NAME, "Pass98t!")
-	// 			.build();
-
-	// 	OAuth2AuthorizedClient authorizedClient = authorizedClientManager.authorize(authorizeRequest);
-	// 	return (request, body, execution) -> {
-	// 		request.getHeaders().setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
-	// 		return execution.execute(request, body);
-	// 	};
-	// }
-
-	Authentication DEFAULT_PRINCIPAL = createAuthentication("dataflow-shell-principal");
-
-	private static Authentication createAuthentication(final String principalName) {
-		return new AbstractAuthenticationToken(null) {
-			private static final long serialVersionUID = -2038812908189509872L;
-
-			@Override
-			public Object getCredentials() {
-				return "";
-			}
-
-			@Override
-			public Object getPrincipal() {
-				return principalName;
-			}
-		};
 	}
 
 	// This is for unit testing
@@ -327,9 +253,6 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 			}
 
 			this.targetHolder.setTarget(new Target(targetUriString, targetUsername, targetPassword, skipSslValidation));
-
-			// XXX
-			// this.targetHolder.getTarget().setTargetCredentials(new TargetCredentials(true));
 
 			if (StringUtils.hasText(credentialsProviderCommand) && authenticationEnabled) {
 				this.targetHolder.getTarget().setTargetCredentials(new TargetCredentials(true));
@@ -616,4 +539,19 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 		};
 	}
 
+	private static Authentication createAuthentication(final String principalName) {
+		return new AbstractAuthenticationToken(null) {
+			private static final long serialVersionUID = -2038812908189509872L;
+
+			@Override
+			public Object getCredentials() {
+				return "";
+			}
+
+			@Override
+			public Object getPrincipal() {
+				return principalName;
+			}
+		};
+	}
 }
