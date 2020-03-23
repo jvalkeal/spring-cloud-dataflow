@@ -130,6 +130,9 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 	@Value("${dataflow.password:" + Target.DEFAULT_SPECIFIED_PASSWORD + "}")
 	private String password;
 
+	@Value("${dataflow.client-registration-id:" + Target.DEFAULT_CLIENT_REGISTRATION_ID + "}")
+	private String clientRegistrationId;
+
 	@Value("${dataflow.skip-ssl-validation:" + Target.DEFAULT_UNSPECIFIED_SKIP_SSL_VALIDATION + "}")
 	private boolean skipSslValidation;
 
@@ -202,6 +205,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 					"password" }, help = "the password for authenticated access to the Admin REST endpoint (valid only with a "
 					+ "username)", specifiedDefaultValue = Target.DEFAULT_SPECIFIED_PASSWORD, unspecifiedDefaultValue = Target.DEFAULT_UNSPECIFIED_PASSWORD) String targetPassword,
 			@CliOption(mandatory = false, key = {
+					"client-registration-id" }, help = "the registration id for oauth2 config ", unspecifiedDefaultValue = Target.DEFAULT_CLIENT_REGISTRATION_ID) String targetClientRegistrationId,
+			@CliOption(mandatory = false, key = {
 					"credentials-provider-command" }, help = "a command to run that outputs the HTTP credentials used for authentication", unspecifiedDefaultValue = Target.DEFAULT_CREDENTIALS_PROVIDER_COMMAND) String credentialsProviderCommand,
 			@CliOption(mandatory = false, key = {
 					"skip-ssl-validation" }, help = "accept any SSL certificate (even self-signed)", specifiedDefaultValue = Target.DEFAULT_SPECIFIED_SKIP_SSL_VALIDATION, unspecifiedDefaultValue = Target.DEFAULT_UNSPECIFIED_SKIP_SSL_VALIDATION) boolean skipSslValidation,
@@ -262,7 +267,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 
 			if (oauth2ClientProperties != null && !oauth2ClientProperties.getRegistration().isEmpty()) {
 				ClientHttpRequestInterceptor bearerTokenResolvingInterceptor = bearerTokenResolvingInterceptor(
-						oauth2ClientProperties, targetUsername, targetPassword);
+						oauth2ClientProperties, targetUsername, targetPassword, targetClientRegistrationId);
 				this.restTemplate.getInterceptors().add(bearerTokenResolvingInterceptor);
 			}
 
@@ -440,6 +445,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 				this.serverUri,
 				this.userName,
 				this.password,
+				this.clientRegistrationId,
 				this.credentialsProviderCommand,
 				this.skipSslValidation,
 				this.proxyUri,
@@ -520,13 +526,18 @@ public class ConfigCommands implements CommandMarker, InitializingBean, Applicat
 	}
 
 	private ClientHttpRequestInterceptor bearerTokenResolvingInterceptor(
-			OAuth2ClientProperties properties, String username, String password) {
+			OAuth2ClientProperties properties, String username, String password, String clientRegistrationId) {
 		ClientRegistrationRepository shellClientRegistrationRepository = shellClientRegistrationRepository(properties);
 		OAuth2AuthorizedClientService shellAuthorizedClientService = shellAuthorizedClientService(shellClientRegistrationRepository);
 		OAuth2AuthorizedClientManager authorizedClientManager = authorizedClientManager(
 				shellClientRegistrationRepository, shellAuthorizedClientService);
 
-		OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId("dataflow-shell")
+		if (properties.getRegistration() != null && properties.getRegistration().size() == 1) {
+			// if we have only one, use that
+			clientRegistrationId = properties.getRegistration().entrySet().iterator().next().getKey();
+		}
+
+		OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId(clientRegistrationId)
 				.principal(DEFAULT_PRINCIPAL)
 				.attribute(OAuth2AuthorizationContext.USERNAME_ATTRIBUTE_NAME, username)
 				.attribute(OAuth2AuthorizationContext.PASSWORD_ATTRIBUTE_NAME, password)
