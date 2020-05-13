@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.dataflow.rest.client;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
-import org.springframework.hateoas.mediatype.vnderrors.VndErrors;
+import org.springframework.hateoas.mediatype.problem.Problem.ExtendedProblem;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A Java exception that wraps the serialized {@link VndErrors} object.
@@ -33,24 +31,20 @@ import org.springframework.util.StringUtils;
 public class DataFlowClientException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-	private final VndErrors vndErrors;
+	private final ExtendedProblem<Map<String, Object>> problem;
 
 	/**
 	 * Initializes a {@link DataFlowClientException} with the provided (mandatory error).
 	 *
-	 * @param vndErrors Must not be null
+	 * @param problem Must not be null
 	 */
-	public DataFlowClientException(VndErrors vndErrors) {
-		Assert.notNull(vndErrors, "The provided vndErrors parameter must not be null.");
-		this.vndErrors = vndErrors;
+	public DataFlowClientException(ExtendedProblem<Map<String, Object>> problem) {
+		Assert.notNull(problem, "The provided problem parameter must not be null.");
+		this.problem = problem;
 	}
 
 	@Override
 	public String getMessage() {
-		final List<String> errorMessages = new ArrayList<>(0);
-		for (VndErrors.VndError e : vndErrors) {
-			errorMessages.add(e.getMessage());
-		}
-		return StringUtils.collectionToDelimitedString(errorMessages, "\n");
+		return (String) problem.getProperties().get("message");
 	}
 }

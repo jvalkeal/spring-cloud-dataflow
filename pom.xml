@@ -92,6 +92,7 @@
 		<findbugs.version>3.0.2</findbugs.version>
 		<aws-java-sdk-ecr.version>1.11.731</aws-java-sdk-ecr.version>
 		<commons-text.version>1.8</commons-text.version>
+		<joda-time.version>2.10.6</joda-time.version>
 	</properties>
 	<modules>
 		<module>spring-cloud-dataflow-configuration-metadata</module>
@@ -254,6 +255,11 @@
 				<groupId>com.google.code.findbugs</groupId>
 				<artifactId>jsr305</artifactId>
 				<version>${findbugs.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>${joda-time.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

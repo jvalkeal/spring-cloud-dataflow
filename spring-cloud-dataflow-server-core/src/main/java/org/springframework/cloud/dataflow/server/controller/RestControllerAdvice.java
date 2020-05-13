@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,8 @@ import org.springframework.cloud.dataflow.server.repository.NoSuchTaskExecutionE
 import org.springframework.cloud.dataflow.server.repository.TaskExecutionMissingExternalIdException;
 import org.springframework.cloud.dataflow.server.service.impl.OffsetOutOfBoundsException;
 import org.springframework.cloud.deployer.spi.scheduler.CreateScheduleException;
-import org.springframework.hateoas.mediatype.vnderrors.VndErrors;
+import org.springframework.hateoas.mediatype.problem.Problem;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.util.StringUtils;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
@@ -78,11 +80,11 @@ public class RestControllerAdvice {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public VndErrors onException(Exception e) {
+	public Problem onException(Exception e) {
 		logger.error("Caught exception while handling a request", e);
 		String logref = e.getClass().getSimpleName();
 		String msg = getExceptionMessage(e);
-		return new VndErrors(logref, msg);
+		return problem(logref, msg);
 	}
 
 	/**
@@ -101,13 +103,20 @@ public class RestControllerAdvice {
 			UnregisterAppException.class, InvalidCTRLaunchRequestException.class})
 	@ResponseStatus(HttpStatus.CONFLICT)
 	@ResponseBody
-	public VndErrors onConflictException(Exception e) {
+	public Problem onConflictException(Exception e, WebRequest webRequest) {
+		try {
+			String header = webRequest.getHeader(HttpHeaders.ACCEPT);
+			logger.info("XXXXXXXXXXXXXXXX {}", header);
+		} catch (Exception ee) {
+			logger.error("XXXXXXXXXXXXX error {}", ee, ee);
+			//TODO: handle exception
+		}
 		String logref = logWarnLevelExceptionMessage(e);
 		if (logger.isTraceEnabled()) {
 			logTraceLevelStrackTrace(e);
 		}
 		String msg = getExceptionMessage(e);
-		return new VndErrors(logref, msg);
+		return problem(logref, msg);
 	}
 
 	/**
@@ -122,13 +131,13 @@ public class RestControllerAdvice {
 	@ExceptionHandler({ JobNotRestartableException.class, JobExecutionNotRunningException.class })
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
 	@ResponseBody
-	public VndErrors onUnprocessableEntityException(Exception e) {
+	public Problem onUnprocessableEntityException(Exception e) {
 		String logref = logWarnLevelExceptionMessage(e);
 		if (logger.isTraceEnabled()) {
 			logTraceLevelStrackTrace(e);
 		}
 		String msg = getExceptionMessage(e);
-		return new VndErrors(logref, msg);
+		return problem(logref, msg);
 	}
 
 	/**
@@ -154,13 +163,13 @@ public class RestControllerAdvice {
 			NoSuchScheduleException.class })
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	@ResponseBody
-	public VndErrors onNotFoundException(Exception e) {
+	public Problem onNotFoundException(Exception e) {
 		String logref = logWarnLevelExceptionMessage(e);
 		if (logger.isTraceEnabled()) {
 			logTraceLevelStrackTrace(e);
 		}
 		String msg = getExceptionMessage(e);
-		return new VndErrors(logref, msg);
+		return problem(logref, msg);
 	}
 
 	/**
@@ -182,7 +191,7 @@ public class RestControllerAdvice {
 			TaskExecutionMissingExternalIdException.class})
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public VndErrors onClientGenericBadRequest(Exception e) {
+	public Problem onClientGenericBadRequest(Exception e) {
 		String logref = logWarnLevelExceptionMessage(e);
 		if (logger.isTraceEnabled()) {
 			logTraceLevelStrackTrace(e);
@@ -215,7 +224,7 @@ public class RestControllerAdvice {
 			message = getExceptionMessage(e);
 		}
 
-		return new VndErrors(logref, message);
+		return problem(logref, message);
 	}
 
 	/**
@@ -232,7 +241,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler({ ConstraintViolationException.class })
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public VndErrors onConstraintViolationException(ConstraintViolationException e) {
+	public Problem onConstraintViolationException(ConstraintViolationException e) {
 		String logref = logWarnLevelExceptionMessage(e);
 		if (logger.isTraceEnabled()) {
 			logTraceLevelStrackTrace(e);
@@ -248,7 +257,7 @@ public class RestControllerAdvice {
 			first = false;
 		}
 
-		return new VndErrors(logref, errorMessage.toString());
+		return problem(logref, errorMessage.toString());
 	}
 
 	private String logWarnLevelExceptionMessage(Exception e) {
@@ -263,5 +272,12 @@ public class RestControllerAdvice {
 
 	private String getExceptionMessage(Exception e) {
 		return StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
+	}
+
+	private Problem problem(String logref, String message) {
+		return Problem.create().withProperties(map -> {
+			map.put("logref", logref);
+			map.put("message", message);
+		});
 	}
 }

@@ -19,6 +19,7 @@ package org.springframework.cloud.dataflow.composedtaskrunner;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -58,6 +59,8 @@ import org.springframework.cloud.task.repository.support.TaskRepositoryInitializ
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mediatype.problem.Problem;
+import org.springframework.hateoas.mediatype.problem.Problem.ExtendedProblem;
 import org.springframework.hateoas.mediatype.vnderrors.VndErrors;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -216,7 +219,12 @@ public class TaskLauncherTaskletTests {
 	public void testInvalidTaskName() {
 		final String ERROR_MESSAGE =
 				"Could not find task definition named " + TASK_NAME;
-		VndErrors errors = new VndErrors("message", ERROR_MESSAGE, new Link("ref"));
+		ExtendedProblem<Map<String, Object>> errors = Problem.create()
+			.withProperties(map -> {
+				map.put("logref", "message");
+				map.put("message", ERROR_MESSAGE);
+			});
+		// VndErrors errors = new VndErrors("message", ERROR_MESSAGE, new Link("ref"));
 		Mockito.doThrow(new DataFlowClientException(errors))
 				.when(this.taskOperations)
 				.launch(ArgumentMatchers.anyString(),

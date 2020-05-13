@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -334,7 +334,7 @@ public class TaskControllerTests {
 
 		mockMvc.perform(post("/tasks/executions").param("name", "myTask").accept(MediaType.APPLICATION_JSON))
 				.andDo(print()).andExpect(status().is5xxServerError())
-				.andExpect(content().json("[{message: \"Unknown task app: no-such-task-app\"}]"));
+				.andExpect(content().json("{message: \"Unknown task app: no-such-task-app\"}"));
 	}
 
 	@Test
@@ -342,7 +342,7 @@ public class TaskControllerTests {
 		mockMvc.perform(post("/tasks/executions")
 				.param("name", "myFoo").accept(MediaType.APPLICATION_JSON))
 				.andDo(print()).andExpect(status().isNotFound())
-				.andExpect(content().json("[{message: \"Could not find task definition named myFoo\"}]"));
+				.andExpect(content().json("{message: \"Could not find task definition named myFoo\"}"));
 	}
 
 	@Test

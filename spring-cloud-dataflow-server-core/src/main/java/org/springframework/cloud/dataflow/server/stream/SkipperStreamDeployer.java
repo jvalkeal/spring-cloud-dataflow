@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.json.JSONObject;
+// import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -577,7 +577,14 @@ public class SkipperStreamDeployer implements StreamDeployer {
 				versionAndDeploymentProperties.put(SkipperStream.SKIPPER_SPEC_VERSION, spec.getVersion());
 				streamPropertiesMap.put(applicationName, versionAndDeploymentProperties);
 			}
-			return new StreamDeployment(streamName, new JSONObject(streamPropertiesMap).toString());
+			try {
+				ObjectMapper objectMapper = new ObjectMapper();
+				String json = objectMapper.writeValueAsString(streamPropertiesMap);
+				return new StreamDeployment(streamName,json);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Unable to serializer streamPropertiesMap", e);
+			}
+			// return new StreamDeployment(streamName, new JSONObject(streamPropertiesMap).toString());
 		}
 		catch (ReleaseNotFoundException e) {
 			return new StreamDeployment(streamName);

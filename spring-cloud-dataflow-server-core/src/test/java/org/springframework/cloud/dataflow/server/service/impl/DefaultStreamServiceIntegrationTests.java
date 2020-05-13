@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -293,7 +294,7 @@ public class DefaultStreamServiceIntegrationTests {
 	}
 
 	@Test
-	public void testStreamInfo() throws IOException {
+	public void testStreamInfo() throws Exception {
 
 		// Create stream
 		StreamDefinition streamDefinition = new StreamDefinition("ticktock",
@@ -314,7 +315,7 @@ public class DefaultStreamServiceIntegrationTests {
 		when(skipperClient.manifest(streamDefinition.getName())).thenReturn(releaseManifest);
 		StreamDeployment streamDeployment = this.streamService.info(streamDefinition.getName());
 		assertThat(streamDeployment.getStreamName()).isEqualTo(streamDefinition.getName());
-		assertThat(streamDeployment.getDeploymentProperties()).contains(deploymentProps);
+		JSONAssert.assertEquals(streamDeployment.getDeploymentProperties(), deploymentProps, true);
 	}
 
 	private Map<String, String> createSkipperDeploymentProperties() {
