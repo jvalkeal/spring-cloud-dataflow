@@ -28,6 +28,7 @@ import javax.persistence.PostLoad;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.springframework.cloud.dataflow.core.dsl.StaticParserService;
 import org.springframework.cloud.dataflow.core.dsl.StreamNode;
 import org.springframework.cloud.dataflow.core.dsl.StreamParser;
 import org.springframework.core.style.ToStringCreator;
@@ -158,7 +159,8 @@ public class StreamDefinition {
 
 	private LinkedList<StreamAppDefinition> getAppDefinitions(String name, String dslText) {
 		LinkedList<StreamAppDefinition> appDefinitions = new LinkedList<>();
-		StreamNode streamNode = new StreamParser(name, dslText).parse();
+		// StreamNode streamNode = new StreamParser(name, dslText).parse();
+		StreamNode streamNode = StaticParserService.getInstance().parseStream(dslText, null);
 		for (StreamAppDefinition appDefinition : new StreamApplicationDefinitionBuilder(name, streamNode).build()) {
 			appDefinitions.addFirst(appDefinition);
 		}
