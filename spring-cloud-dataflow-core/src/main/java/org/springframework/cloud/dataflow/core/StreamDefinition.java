@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import javax.persistence.PostLoad;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.springframework.cloud.dataflow.core.dsl.StaticParserService;
 import org.springframework.cloud.dataflow.core.dsl.StreamNode;
-import org.springframework.cloud.dataflow.core.dsl.StreamParser;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -158,7 +158,7 @@ public class StreamDefinition {
 
 	private LinkedList<StreamAppDefinition> getAppDefinitions(String name, String dslText) {
 		LinkedList<StreamAppDefinition> appDefinitions = new LinkedList<>();
-		StreamNode streamNode = new StreamParser(name, dslText).parse();
+		StreamNode streamNode = StaticParserService.getInstance().parseStream(dslText, null);
 		for (StreamAppDefinition appDefinition : new StreamApplicationDefinitionBuilder(name, streamNode).build()) {
 			appDefinitions.addFirst(appDefinition);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ import org.springframework.cloud.dataflow.core.StreamDefinition;
 import org.springframework.cloud.dataflow.core.StreamDefinitionToDslConverter;
 import org.springframework.cloud.dataflow.core.StreamDeployment;
 import org.springframework.cloud.dataflow.core.dsl.ParseException;
+import org.springframework.cloud.dataflow.core.dsl.StaticParserService;
 import org.springframework.cloud.dataflow.core.dsl.StreamNode;
-import org.springframework.cloud.dataflow.core.dsl.StreamParser;
 import org.springframework.cloud.dataflow.rest.SkipperStream;
 import org.springframework.cloud.dataflow.rest.UpdateStreamRequest;
 import org.springframework.cloud.dataflow.rest.util.DeploymentPropertiesUtils;
@@ -516,7 +516,7 @@ public class DefaultStreamService implements StreamService {
 		String currentStreamName = currentStreamDefinition.getName();
 		String indexedStreamName = currentStreamName + ".";
 		for (StreamDefinition definition : definitions) {
-			StreamNode sn = new StreamParser(definition.getName(), definition.getDslText()).parse();
+			StreamNode sn = StaticParserService.getInstance().parseStream(definition.getDslText(), definition.getName());
 			if (sn.getSourceDestinationNode() != null) {
 				String nameComponent = sn.getSourceDestinationNode().getDestinationName();
 				if (nameComponent.equals(currentStreamName) || nameComponent.startsWith(indexedStreamName)) {
