@@ -74,7 +74,8 @@
 		<!-- Only used for tests -->
 		<spring-security-oauth2.version>2.3.7.RELEASE</spring-security-oauth2.version>
 
-		<java-cfenv-boot.version>1.1.3.RELEASE</java-cfenv-boot.version>
+		<spring-cloud-services-starters.version>3.1.3.RELEASE</spring-cloud-services-starters.version>
+		<java-cfenv-boot.version>2.2.0.RELEASE</java-cfenv-boot.version>
 
 		<spring-cloud-common-security-config.version>1.4.0-SNAPSHOT</spring-cloud-common-security-config.version>
 
@@ -141,6 +142,13 @@
 				<scope>import</scope>
 			</dependency>
 			<dependency>
+				<groupId>io.pivotal.spring.cloud</groupId>
+				<artifactId>spring-cloud-services-dependencies</artifactId>
+				<version>${spring-cloud-services-starters.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dataflow-dependencies</artifactId>
 				<version>2.6.0-SNAPSHOT</version>
@@ -181,16 +189,6 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-deployer-cloudfoundry</artifactId>
 				<version>${spring-cloud-deployer-cloudfoundry.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.pivotal.cfenv</groupId>
-				<artifactId>java-cfenv-boot</artifactId>
-				<version>${java-cfenv-boot.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.pivotal.cfenv</groupId>
-				<artifactId>java-cfenv-boot-pivotal-scs</artifactId>
-				<version>${java-cfenv-boot.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.pivotal.cfenv</groupId>
