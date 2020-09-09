@@ -12,6 +12,36 @@
         },
         {
             "type": "java",
+            "name": "SCDF sec uaa",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "org.springframework.cloud.dataflow.server.single.DataFlowServerApplication",
+            "projectName": "spring-cloud-dataflow-server",
+            "args": "--spring.config.additional-location=/home/jvalkealahti/work/scdf/secoverhaul/uaa/dataflow-uaa.yml"
+        },
+        {
+            "type": "java",
+            "name": "SCDF sec azure",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "org.springframework.cloud.dataflow.server.single.DataFlowServerApplication",
+            "projectName": "spring-cloud-dataflow-server",
+            "args": "--spring.config.additional-location=/home/jvalkealahti/work/scdf/secoverhaul/azure/dataflow-azure.yml"
+        },
+        {
+            "type": "java",
+            "name": "SCDF sec azure lib",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "org.springframework.cloud.dataflow.server.single.DataFlowServerApplication",
+            "projectName": "spring-cloud-dataflow-server",
+            "args": "--spring.config.additional-location=/home/jvalkealahti/work/scdf/secoverhaul/azure/dataflow-azure-lib.yml"
+        },
+        {
+            "type": "java",
             "name": "SCDF postgres",
             "request": "launch",
             "cwd": "${workspaceFolder}",

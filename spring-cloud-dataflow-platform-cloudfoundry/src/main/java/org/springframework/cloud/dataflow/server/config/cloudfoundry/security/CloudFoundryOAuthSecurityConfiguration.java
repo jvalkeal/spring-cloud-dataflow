@@ -25,11 +25,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
-import org.springframework.cloud.common.security.support.CustomAuthoritiesOpaqueTokenIntrospector;
-import org.springframework.cloud.common.security.support.DefaultAuthoritiesMapper;
-import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
+// import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.support.CustomAuthoritiesOpaqueTokenIntrospector;
+// import org.springframework.cloud.common.security.support.DefaultAuthoritiesMapper;
+// import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
 import org.springframework.cloud.dataflow.server.config.cloudfoundry.security.support.CloudFoundryDataflowAuthoritiesMapper;
 import org.springframework.cloud.dataflow.server.config.cloudfoundry.security.support.CloudFoundrySecurityService;
 import org.springframework.context.annotation.Bean;
@@ -60,24 +60,24 @@ import org.springframework.web.client.RestTemplate;
  */
 @Configuration
 @ConditionalOnCloudPlatform(CloudPlatform.CLOUD_FOUNDRY)
-@Conditional(OnOAuth2SecurityEnabled.class)
+// @Conditional(OnOAuth2SecurityEnabled.class)
 @Import(CloudFoundryOAuthSecurityConfiguration.CloudFoundryUAAConfiguration.class)
 public class CloudFoundryOAuthSecurityConfiguration {
 
 	private static final Logger logger = LoggerFactory.getLogger(CloudFoundryOAuthSecurityConfiguration.class);
 
-	@Autowired
-	private CustomAuthoritiesOpaqueTokenIntrospector customAuthoritiesOpaqueTokenIntrospector;
+	// @Autowired
+	// private CustomAuthoritiesOpaqueTokenIntrospector customAuthoritiesOpaqueTokenIntrospector;
 
 	@Autowired(required = false)
 	private CloudFoundryDataflowAuthoritiesMapper cloudFoundryDataflowAuthoritiesExtractor;
 
 	@PostConstruct
 	public void init() {
-		if (this.cloudFoundryDataflowAuthoritiesExtractor != null) {
-			logger.info("Setting up Cloud Foundry AuthoritiesExtractor for UAA.");
-			this.customAuthoritiesOpaqueTokenIntrospector.setAuthorityMapper(this.cloudFoundryDataflowAuthoritiesExtractor);
-		}
+		// if (this.cloudFoundryDataflowAuthoritiesExtractor != null) {
+		// 	logger.info("Setting up Cloud Foundry AuthoritiesExtractor for UAA.");
+		// 	this.customAuthoritiesOpaqueTokenIntrospector.setAuthorityMapper(this.cloudFoundryDataflowAuthoritiesExtractor);
+		// }
 	}
 
 	@Configuration
@@ -99,9 +99,9 @@ public class CloudFoundryOAuthSecurityConfiguration {
 
 		@Bean
 		public CloudFoundrySecurityService cloudFoundrySecurityService(
-				OAuth2TokenUtilsService oauth2TokenUtilsService,
+				// OAuth2TokenUtilsService oauth2TokenUtilsService,
 				RestTemplate restTemplate) {
-			return new CloudFoundrySecurityService(oauth2TokenUtilsService, restTemplate,
+			return new CloudFoundrySecurityService(/*oauth2TokenUtilsService,*/ restTemplate,
 					this.cloudControllerUrl,
 					this.applicationId);
 		}

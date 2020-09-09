@@ -39,7 +39,7 @@ import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.dataflow.audit.repository.AuditRecordRepository;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.audit.service.DefaultAuditRecordService;
@@ -275,7 +275,7 @@ public class JobDependencies {
 			TaskAppDeploymentRequestCreator taskAppDeploymentRequestCreator,
 			TaskExplorer taskExplorer, DataflowTaskExecutionDao dataflowTaskExecutionDao,
 			DataflowTaskExecutionMetadataDao dataflowTaskExecutionMetadataDao,
-			OAuth2TokenUtilsService oauth2TokenUtilsService,
+			// OAuth2TokenUtilsService oauth2TokenUtilsService,
 			TaskSaveService taskSaveService, TaskConfigurationProperties taskConfigurationProperties) {
 		return new DefaultTaskExecutionService(
 				launcherRepository, auditRecordService,
@@ -283,7 +283,7 @@ public class JobDependencies {
 				taskExecutionInfoService, taskDeploymentRepository,
 				taskExecutionRepositoryService, taskAppDeploymentRequestCreator,
 				taskExplorer, dataflowTaskExecutionDao,
-				dataflowTaskExecutionMetadataDao, oauth2TokenUtilsService,
+				dataflowTaskExecutionMetadataDao, /*oauth2TokenUtilsService,*/
 				taskSaveService, taskConfigurationProperties);
 	}
 
@@ -482,8 +482,8 @@ public class JobDependencies {
 		};
 	}
 
-	@Bean
-	public OAuth2TokenUtilsService oauth2TokenUtilsService() {
-		return mock(OAuth2TokenUtilsService.class);
-	}
+	// @Bean
+	// public OAuth2TokenUtilsService oauth2TokenUtilsService() {
+	// 	return mock(OAuth2TokenUtilsService.class);
+	// }
 }

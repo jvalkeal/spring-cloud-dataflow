@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.core.support.OAuth2AccessTokenProvidingClientHttpRequestInterceptor;
+// import org.springframework.cloud.common.security.core.support.OAuth2AccessTokenProvidingClientHttpRequestInterceptor;
 import org.springframework.cloud.dataflow.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.dataflow.composedtaskrunner.support.OnOAuth2ClientCredentialsEnabled;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
@@ -107,9 +107,9 @@ public class DataFlowConfiguration {
 			logger.debug("Not configuring basic security for accessing the Data Flow Server");
 		}
 
-		if (accessTokenValue != null) {
-			restTemplate.getInterceptors().add(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(accessTokenValue));
-		}
+		// if (accessTokenValue != null) {
+		// 	restTemplate.getInterceptors().add(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(accessTokenValue));
+		// }
 
 		if (clientHttpRequestFactoryBuilder != null) {
 			restTemplate.setRequestFactory(clientHttpRequestFactoryBuilder.buildClientHttpRequestFactory());

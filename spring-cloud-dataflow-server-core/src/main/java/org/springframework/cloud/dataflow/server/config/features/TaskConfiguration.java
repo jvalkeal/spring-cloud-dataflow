@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.configuration.metadata.ApplicationConfigurationMetadataResolver;
 import org.springframework.cloud.dataflow.core.TaskPlatform;
@@ -188,13 +188,13 @@ public class TaskConfiguration {
 			TaskExplorer taskExplorer,
 			DataflowTaskExecutionDao dataflowTaskExecutionDao,
 			DataflowTaskExecutionMetadataDao dataflowTaskExecutionMetadataDao,
-			@Nullable OAuth2TokenUtilsService oauth2TokenUtilsService,
+			// @Nullable OAuth2TokenUtilsService oauth2TokenUtilsService,
 			TaskSaveService taskSaveService) {
 		DefaultTaskExecutionService defaultTaskExecutionService =  new DefaultTaskExecutionService(
 				launcherRepository, auditRecordService, taskRepository,
 				taskExecutionInfoService, taskDeploymentRepository, taskExecutionRepositoryService,
 				taskAppDeploymentRequestCreator, taskExplorer, dataflowTaskExecutionDao,
-				dataflowTaskExecutionMetadataDao, oauth2TokenUtilsService, taskSaveService,
+				dataflowTaskExecutionMetadataDao/*, oauth2TokenUtilsService*/, taskSaveService,
 				this.taskConfigurationProperties);
 		defaultTaskExecutionService.setAutoCreateTaskDefinitions(this.taskConfigurationProperties.isAutoCreateTaskDefinitions());
 		return defaultTaskExecutionService;

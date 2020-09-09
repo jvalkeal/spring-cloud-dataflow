@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.core.AppRegistration;
 import org.springframework.cloud.dataflow.core.ApplicationType;
@@ -146,7 +146,7 @@ public class DefaultTaskExecutionServiceTransactionTests {
 				taskExecutionInfoService, mock(TaskDeploymentRepository.class),
 				taskExecutionRepositoryService, taskAppDeploymentRequestCreator,
 				this.taskExplorer, this.dataflowTaskExecutionDao, this.dataflowTaskExecutionMetadataDao,
-				mock(OAuth2TokenUtilsService.class), this.taskSaveService, this.taskConfigurationProperties);
+				/*mock(OAuth2TokenUtilsService.class),*/ this.taskSaveService, this.taskConfigurationProperties);
 	}
 
 	@Test

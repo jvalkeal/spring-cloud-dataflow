@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.core.AuditActionType;
 import org.springframework.cloud.dataflow.core.AuditOperationType;
@@ -130,7 +130,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 
 	private final DataflowTaskExecutionMetadataDao dataflowTaskExecutionMetadataDao;
 
-	private OAuth2TokenUtilsService oauth2TokenUtilsService;
+	// private OAuth2TokenUtilsService oauth2TokenUtilsService;
 
 	private final Map<String, List<String>> tasksBeingUpgraded = new ConcurrentHashMap<>();
 
@@ -169,7 +169,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 			TaskExplorer taskExplorer,
 			DataflowTaskExecutionDao dataflowTaskExecutionDao,
 			DataflowTaskExecutionMetadataDao dataflowTaskExecutionMetadataDao,
-			OAuth2TokenUtilsService oauth2TokenUtilsService,
+			// OAuth2TokenUtilsService oauth2TokenUtilsService,
 			TaskSaveService taskSaveService,
 			TaskConfigurationProperties taskConfigurationProperties) {
 		Assert.notNull(launcherRepository, "launcherRepository must not be null");
@@ -186,7 +186,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 		Assert.notNull(taskSaveService, "taskSaveService must not be null");
 		Assert.notNull(taskConfigurationProperties, "taskConfigurationProperties must not be null");
 
-		this.oauth2TokenUtilsService = oauth2TokenUtilsService;
+		// this.oauth2TokenUtilsService = oauth2TokenUtilsService;
 		this.launcherRepository = launcherRepository;
 		this.auditRecordService = auditRecordService;
 		this.taskRepository = taskRepository;
@@ -260,7 +260,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 
 		// Get the previous manifest
 		TaskManifest previousManifest = this.dataflowTaskExecutionMetadataDao.getLatestManifest(taskName);
-		
+
 		// Analysing task to know what to bring forward from existing
 		TaskAnalysisReport report = taskAnalyzer
 				.analyze(
@@ -286,7 +286,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 
 		TaskManifest taskManifest = createTaskManifest(platformName, request);
 		String taskDeploymentId = null;
-		
+
 		try {
 			if(launcher.getType().equals(TaskPlatformFactory.CLOUDFOUNDRY_PLATFORM_TYPE) && !isAppDeploymentSame(previousManifest, taskManifest)) {
 				verifyTaskIsNotRunning(taskName, taskExecution, taskLauncher);
@@ -324,7 +324,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 						), platformName);
 
 		return taskExecution.getExecutionId();
-	}	
+	}
 
 	private TaskExecutionInformation findOrCreateTaskExecutionInformation(String taskName, Map<String, String> taskDeploymentProperties, String platform) {
 
@@ -387,13 +387,13 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 		if(this.taskConfigurationProperties.isUseUserAccessToken()) {
 			useUserAccessToken = true;
 		}
-		if (!containsAccessToken && useUserAccessToken && oauth2TokenUtilsService != null) {
-			final String token = oauth2TokenUtilsService.getAccessTokenOfAuthenticatedUser();
+		// if (!containsAccessToken && useUserAccessToken && oauth2TokenUtilsService != null) {
+		// 	final String token = oauth2TokenUtilsService.getAccessTokenOfAuthenticatedUser();
 
-			if (token != null) {
-				taskExecutionInformation.getTaskDeploymentProperties().put(dataflowAccessTokenPropertyKey, token);
-			}
-		}
+		// 	if (token != null) {
+		// 		taskExecutionInformation.getTaskDeploymentProperties().put(dataflowAccessTokenPropertyKey, token);
+		// 	}
+		// }
 	}
 
 	/**
@@ -496,7 +496,7 @@ public class DefaultTaskExecutionService implements TaskExecutionService {
 	/**
 	 * Create a {@code TaskManifest}
 	 *
-	 * @param platformName name of the platform configuration to run the task on	 * 
+	 * @param platformName name of the platform configuration to run the task on	 *
 	 * @param appDeploymentRequest the details about the deployment to be executed
 	 * @return {@code TaskManifest}
 	 */

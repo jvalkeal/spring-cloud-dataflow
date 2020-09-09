@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.support.SecurityStateBean;
+// import org.springframework.cloud.common.security.support.SecurityStateBean;
 import org.springframework.cloud.dataflow.core.Launcher;
 import org.springframework.cloud.dataflow.rest.resource.about.AboutResource;
 import org.springframework.cloud.dataflow.rest.resource.about.Dependency;
@@ -84,7 +84,7 @@ public class AboutController {
 
 	private final VersionInfoProperties versionInfoProperties;
 
-	private final SecurityStateBean securityStateBean;
+	// private final SecurityStateBean securityStateBean;
 
 	@Value("${security.oauth2.client.client-id:#{null}}")
 	private String oauthClientId;
@@ -100,12 +100,12 @@ public class AboutController {
 	private GrafanaInfoProperties grafanaProperties;
 
 	public AboutController(StreamDeployer streamDeployer, LauncherRepository launcherRepository, FeaturesProperties featuresProperties,
-			VersionInfoProperties versionInfoProperties, SecurityStateBean securityStateBean, GrafanaInfoProperties grafanaInfoProperties) {
+			VersionInfoProperties versionInfoProperties/*, SecurityStateBean securityStateBean*/, GrafanaInfoProperties grafanaInfoProperties) {
 		this.streamDeployer = streamDeployer;
 		this.launcherRepository = launcherRepository;
 		this.featuresProperties = featuresProperties;
 		this.versionInfoProperties = versionInfoProperties;
-		this.securityStateBean = securityStateBean;
+		// this.securityStateBean = securityStateBean;
 		this.grafanaProperties = grafanaInfoProperties;
 	}
 
@@ -130,7 +130,8 @@ public class AboutController {
 		aboutResource.setFeatureInfo(featureInfo);
 		aboutResource.setVersionInfo(versionInfo);
 
-		final boolean authenticationEnabled = securityStateBean.isAuthenticationEnabled();
+		// final boolean authenticationEnabled = securityStateBean.isAuthenticationEnabled();
+		final boolean authenticationEnabled = false;
 
 		final SecurityInfo securityInfo = new SecurityInfo();
 		securityInfo.setAuthenticationEnabled(authenticationEnabled);

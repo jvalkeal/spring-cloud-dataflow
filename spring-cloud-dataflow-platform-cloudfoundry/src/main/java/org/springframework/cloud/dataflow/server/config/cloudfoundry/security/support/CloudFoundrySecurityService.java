@@ -22,7 +22,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.util.Assert;
@@ -42,21 +42,21 @@ public class CloudFoundrySecurityService {
 
 	private static final Logger logger = LoggerFactory.getLogger(CloudFoundrySecurityService.class);
 
-	private final OAuth2TokenUtilsService oauth2TokenUtilsService;
+	// private final OAuth2TokenUtilsService oauth2TokenUtilsService;
 	private final RestTemplate restTemplate;
 
 	private final String cloudControllerUrl;
 
 	private final String applicationId;
 
-	public CloudFoundrySecurityService(OAuth2TokenUtilsService oauth2TokenUtilsService,
+	public CloudFoundrySecurityService(/*OAuth2TokenUtilsService oauth2TokenUtilsService,*/
 			RestTemplate restTemplate, String cloudControllerUrl,
 			String applicationId) {
-		Assert.notNull(oauth2TokenUtilsService, "oauth2TokenUtilsService must not be null.");
+		// Assert.notNull(oauth2TokenUtilsService, "oauth2TokenUtilsService must not be null.");
 		Assert.notNull(restTemplate, "restTemplate must not be null.");
 		Assert.notNull(cloudControllerUrl, "CloudControllerUrl must not be null.");
 		Assert.notNull(applicationId, "ApplicationId must not be null.");
-		this.oauth2TokenUtilsService = oauth2TokenUtilsService;
+		// this.oauth2TokenUtilsService = oauth2TokenUtilsService;
 		this.cloudControllerUrl = cloudControllerUrl;
 		this.applicationId = applicationId;
 		this.restTemplate = restTemplate;
@@ -70,8 +70,9 @@ public class CloudFoundrySecurityService {
 	 * @return true of the user is a space developer in Cloud Foundry
 	 */
 	public boolean isSpaceDeveloper() {
-		final String accessToken = this.oauth2TokenUtilsService.getAccessTokenOfAuthenticatedUser();
-		return isSpaceDeveloper(accessToken);
+		// final String accessToken = this.oauth2TokenUtilsService.getAccessTokenOfAuthenticatedUser();
+		// return isSpaceDeveloper(accessToken);
+		return false;
 	}
 
 	public boolean isSpaceDeveloper(String accessToken) {

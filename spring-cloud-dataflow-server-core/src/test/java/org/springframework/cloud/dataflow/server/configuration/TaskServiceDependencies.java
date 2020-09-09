@@ -36,7 +36,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.audit.service.DefaultAuditRecordService;
 import org.springframework.cloud.dataflow.completion.CompletionConfiguration;
@@ -292,14 +292,14 @@ public class TaskServiceDependencies extends WebMvcConfigurationSupport {
 			TaskAppDeploymentRequestCreator taskAppDeploymentRequestCreator,
 			TaskExplorer taskExplorer, DataflowTaskExecutionDao dataflowTaskExecutionDao,
 			DataflowTaskExecutionMetadataDao dataflowTaskExecutionMetadataDao,
-			OAuth2TokenUtilsService oauth2TokenUtilsService,
+			// OAuth2TokenUtilsService oauth2TokenUtilsService,
 			TaskSaveService taskSaveService) {
 		DefaultTaskExecutionService taskExecutionService = new DefaultTaskExecutionService(
 				launcherRepository, auditRecordService, taskRepository,
 				taskExecutionInfoService, taskDeploymentRepository,
 				taskExecutionRepositoryService, taskAppDeploymentRequestCreator,
 				taskExplorer, dataflowTaskExecutionDao, dataflowTaskExecutionMetadataDao,
-				oauth2TokenUtilsService, taskSaveService, this.taskConfigurationProperties);
+				/*oauth2TokenUtilsService,*/ taskSaveService, this.taskConfigurationProperties);
 		taskExecutionService.setAutoCreateTaskDefinitions(this.taskConfigurationProperties.isAutoCreateTaskDefinitions());
 		return taskExecutionService;
 	}
@@ -345,10 +345,10 @@ public class TaskServiceDependencies extends WebMvcConfigurationSupport {
 		return new SimpleTestScheduler();
 	}
 
-	@Bean
-	public OAuth2TokenUtilsService oauth2TokenUtilsService() {
-		final OAuth2TokenUtilsService oauth2TokenUtilsService = mock(OAuth2TokenUtilsService.class);
-		when(oauth2TokenUtilsService.getAccessTokenOfAuthenticatedUser()).thenReturn("foo-bar-123-token");
-		return oauth2TokenUtilsService;
-	}
+	// @Bean
+	// public OAuth2TokenUtilsService oauth2TokenUtilsService() {
+	// 	final OAuth2TokenUtilsService oauth2TokenUtilsService = mock(OAuth2TokenUtilsService.class);
+	// 	when(oauth2TokenUtilsService.getAccessTokenOfAuthenticatedUser()).thenReturn("foo-bar-123-token");
+	// 	return oauth2TokenUtilsService;
+	// }
 }

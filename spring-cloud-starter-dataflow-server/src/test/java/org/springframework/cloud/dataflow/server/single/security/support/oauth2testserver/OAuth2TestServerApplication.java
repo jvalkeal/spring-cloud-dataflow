@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.autoconfigure.session.SessionAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
+// import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
 import org.springframework.cloud.dataflow.autoconfigure.local.LocalDataFlowServerAutoConfiguration;
 import org.springframework.cloud.dataflow.configuration.metadata.ApplicationConfigurationMetadataResolverAutoConfiguration;
 import org.springframework.cloud.dataflow.rest.client.config.DataFlowClientAutoConfiguration;
@@ -47,7 +47,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 		"org.springframework.cloud.dataflow.shell.autoconfigure.BaseShellAutoConfiguration" },
 		exclude = {
 				DataFlowClientAutoConfiguration.class,
-				CommonSecurityAutoConfiguration.class,
+				// CommonSecurityAutoConfiguration.class,
 				SessionAutoConfiguration.class,
 				ManagementWebSecurityAutoConfiguration.class,
 				LocalDeployerAutoConfiguration.class,

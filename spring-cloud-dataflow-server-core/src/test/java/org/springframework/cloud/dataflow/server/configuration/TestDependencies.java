@@ -44,8 +44,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
-import org.springframework.cloud.common.security.support.SecurityStateBean;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.support.SecurityStateBean;
 import org.springframework.cloud.dataflow.audit.repository.AuditRecordRepository;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.audit.service.DefaultAuditRecordService;
@@ -540,7 +540,7 @@ public class TestDependencies extends WebMvcConfigurationSupport {
 			TaskAppDeploymentRequestCreator taskAppDeploymentRequestCreator,
 			TaskExplorer taskExplorer, DataflowTaskExecutionDao dataflowTaskExecutionDao,
 			DataflowTaskExecutionMetadataDao dataflowTaskExecutionMetadataDao,
-			OAuth2TokenUtilsService oauth2TokenUtilsService,
+			// OAuth2TokenUtilsService oauth2TokenUtilsService,
 			TaskSaveService taskSaveService,
 			TaskConfigurationProperties taskConfigurationProperties) {
 
@@ -549,7 +549,7 @@ public class TestDependencies extends WebMvcConfigurationSupport {
 				taskExecutionInfoService, taskDeploymentRepository,
 				taskExecutionRepositoryService, taskAppDeploymentRequestCreator,
 				taskExplorer, dataflowTaskExecutionDao, dataflowTaskExecutionMetadataDao,
-				oauth2TokenUtilsService, taskSaveService, taskConfigurationProperties);
+				/*oauth2TokenUtilsService,*/ taskSaveService, taskConfigurationProperties);
 	}
 
 	@Bean
@@ -626,7 +626,7 @@ public class TestDependencies extends WebMvcConfigurationSupport {
 
 		return new AboutController(streamDeployer, launcherRepository,
 				featuresProperties, versionInfoProperties,
-				mock(SecurityStateBean.class), grafanaInfoProperties);
+				/*mock(SecurityStateBean.class),*/ grafanaInfoProperties);
 	}
 
 	@Bean
@@ -659,8 +659,8 @@ public class TestDependencies extends WebMvcConfigurationSupport {
 		return mock(JobInstanceController.class);
 	}
 
-	@Bean
-	public OAuth2TokenUtilsService oauth2TokenUtilsService() {
-		return mock(OAuth2TokenUtilsService.class);
-	}
+	// @Bean
+	// public OAuth2TokenUtilsService oauth2TokenUtilsService() {
+	// 	return mock(OAuth2TokenUtilsService.class);
+	// }
 }

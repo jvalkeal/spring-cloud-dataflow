@@ -33,7 +33,7 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
-import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
+// import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
 import org.springframework.cloud.dataflow.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.cloud.dataflow.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
@@ -59,7 +59,7 @@ import static org.mockito.Mockito.verify;
 		"composed-task-properties=" + ComposedTaskRunnerConfigurationWithPropertiesTests.COMPOSED_TASK_PROPS ,
 		"interval-time-between-checks=1100", "composed-task-arguments=--baz=boo --AAA.foo=bar BBB.que=qui",
 		"dataflow-server-uri=https://bar", "spring.cloud.task.name=ComposedTest"})
-@EnableAutoConfiguration(exclude = { CommonSecurityAutoConfiguration.class})
+// @EnableAutoConfiguration(exclude = { CommonSecurityAutoConfiguration.class})
 public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 	@Autowired

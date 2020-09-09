@@ -45,7 +45,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.OutputCaptureRule;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.core.AppRegistration;
 import org.springframework.cloud.dataflow.core.ApplicationType;
@@ -509,7 +509,7 @@ public abstract class DefaultTaskExecutionServiceTests {
 
 			verify(this.taskLauncher, times(0)).destroy(TASK_NAME_ORIG);
 		}
-		
+
 		private void setupUpgradeForCommandLineArgsChange() throws IOException {
 			 TaskExecution myTask = this.taskRepository.createTaskExecution(TASK_NAME_ORIG);
 			 TaskManifest manifest = new TaskManifest();
@@ -829,7 +829,7 @@ public abstract class DefaultTaskExecutionServiceTests {
 					taskExecutionInfoService, mock(TaskDeploymentRepository.class),
 					taskExecutionRepositoryService, taskAppDeploymentRequestCreator,
 					this.taskExplorer, this.dataflowTaskExecutionDao, this.dataflowTaskExecutionMetadataDao,
-					mock(OAuth2TokenUtilsService.class), this.taskSaveService, taskConfigurationProperties);
+					/*mock(OAuth2TokenUtilsService.class),*/ this.taskSaveService, taskConfigurationProperties);
 			try {
 				taskExecutionService.executeTask(TASK_NAME_ORIG, new HashMap<>(), new LinkedList<>());
 			}

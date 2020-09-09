@@ -33,10 +33,12 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.common.security.AuthorizationProperties;
-import org.springframework.cloud.common.security.core.support.OAuth2AccessTokenProvidingClientHttpRequestInterceptor;
-import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
-import org.springframework.cloud.common.security.support.SecurityStateBean;
+import org.springframework.cloud.dataflow.common.security.AuthorizationProperties;
+import org.springframework.cloud.dataflow.common.security.SecurityState;
+// import org.springframework.cloud.common.security.AuthorizationProperties;
+// import org.springframework.cloud.common.security.core.support.OAuth2AccessTokenProvidingClientHttpRequestInterceptor;
+// import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
+// import org.springframework.cloud.common.security.support.SecurityStateBean;
 import org.springframework.cloud.dataflow.audit.repository.AuditRecordRepository;
 import org.springframework.cloud.dataflow.audit.service.AuditRecordService;
 import org.springframework.cloud.dataflow.audit.service.DefaultAuditRecordService;
@@ -181,10 +183,10 @@ public class DataFlowControllerAutoConfiguration {
 			ObjectProvider<LauncherRepository> launcherRepository,
 			FeaturesProperties featuresProperties,
 			VersionInfoProperties versionInfoProperties,
-			SecurityStateBean securityStateBean,
+			// SecurityStateBean securityStateBean,
 			GrafanaInfoProperties grafanaInfoProperties) {
 		return new AboutController(streamDeployer.getIfAvailable(), launcherRepository.getIfAvailable(),
-				featuresProperties, versionInfoProperties, securityStateBean, grafanaInfoProperties);
+				featuresProperties, versionInfoProperties, /*securityStateBean,*/ grafanaInfoProperties);
 	}
 
 	@Bean
@@ -375,8 +377,8 @@ public class DataFlowControllerAutoConfiguration {
 
 		@Bean
 		public SkipperClient skipperClient(SkipperClientProperties properties,
-				RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper,
-				@Nullable OAuth2TokenUtilsService oauth2TokenUtilsService) {
+				RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper/*,
+				@Nullable OAuth2TokenUtilsService oauth2TokenUtilsService*/) {
 
 			// TODO (Tzolov) review the manual Hal convertion configuration
 			objectMapper.registerModule(new Jackson2HalModule());
@@ -386,7 +388,7 @@ public class DataFlowControllerAutoConfiguration {
 
 			RestTemplate restTemplate = restTemplateBuilder
 					.errorHandler(new SkipperClientResponseErrorHandler(objectMapper))
-					.interceptors(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(oauth2TokenUtilsService))
+					// .interceptors(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(oauth2TokenUtilsService))
 					.messageConverters(Arrays.asList(new StringHttpMessageConverter(),
 							new MappingJackson2HttpMessageConverter(objectMapper)))
 					.build();
@@ -450,18 +452,18 @@ public class DataFlowControllerAutoConfiguration {
 	@Configuration
 	public static class SecurityConfiguration {
 
+		// @Bean
+		// public SpringSecurityAuditorAware springSecurityAuditorAware(SecurityStateBean securityStateBean) {
+		// 	return new SpringSecurityAuditorAware(securityStateBean);
+		// }
+
 		@Bean
-		public SpringSecurityAuditorAware springSecurityAuditorAware(SecurityStateBean securityStateBean) {
-			return new SpringSecurityAuditorAware(securityStateBean);
+		public SecurityState securityStateBean() {
+			return new SecurityState();
 		}
 
 		@Bean
-		public SecurityStateBean securityStateBean() {
-			return new SecurityStateBean();
-		}
-
-		@Bean
-		public SecurityController securityController(SecurityStateBean securityStateBean) {
+		public SecurityController securityController(SecurityState securityStateBean) {
 			return new SecurityController(securityStateBean);
 		}
 

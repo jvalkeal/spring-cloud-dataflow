@@ -26,7 +26,7 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
-import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
+// import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
 import org.springframework.cloud.dataflow.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@EnableAutoConfiguration(exclude = { CommonSecurityAutoConfiguration.class})
+// @EnableAutoConfiguration(exclude = { CommonSecurityAutoConfiguration.class})
 @TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1000", "increment-instance-enabled=true", "spring.cloud.task.name=footest"})
 public class ComposedTaskRunnerConfigurationJobIncrementerTests {
 

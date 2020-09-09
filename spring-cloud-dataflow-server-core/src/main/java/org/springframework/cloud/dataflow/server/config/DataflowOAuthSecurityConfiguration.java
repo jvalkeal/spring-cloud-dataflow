@@ -15,8 +15,8 @@
  */
 package org.springframework.cloud.dataflow.server.config;
 
-import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
-import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
+// import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
+// import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,12 +29,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
  * @author Janne Valkealahti
  */
 @Configuration
-@Conditional(OnOAuth2SecurityEnabled.class)
-public class DataflowOAuthSecurityConfiguration extends OAuthSecurityConfiguration {
+// @Conditional(OnOAuth2SecurityEnabled.class)
+public class DataflowOAuthSecurityConfiguration /*extends OAuthSecurityConfiguration*/ {
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		super.configure(http);
-	}
+	// @Override
+	// protected void configure(HttpSecurity http) throws Exception {
+	// 	super.configure(http);
+	// }
 
 }

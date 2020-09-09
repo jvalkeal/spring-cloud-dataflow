@@ -19,7 +19,11 @@ package org.springframework.cloud.dataflow.autoconfigure.local;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.cloud.dataflow.server.config.DataFlowControllerAutoConfiguration;
 import org.springframework.cloud.deployer.resource.docker.DockerResourceLoader;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
@@ -27,6 +31,7 @@ import org.springframework.cloud.deployer.resource.maven.MavenResourceLoader;
 import org.springframework.cloud.deployer.resource.support.DelegatingResourceLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ResourceLoader;
 /**
  * Auto-configuration for local dataflow server.
@@ -35,6 +40,14 @@ import org.springframework.core.io.ResourceLoader;
  */
 @Configuration
 @AutoConfigureBefore(DataFlowControllerAutoConfiguration.class)
+// XXX added here just for now
+// @AutoConfigureBefore({
+// 	DataFlowControllerAutoConfiguration.class,
+// 	SecurityAutoConfiguration.class,
+// 	ManagementWebSecurityAutoConfiguration.class,
+// 	OAuth2ClientAutoConfiguration.class,
+// 	OAuth2ResourceServerAutoConfiguration.class})
+// @Import({OAuthSecurityConfiguration.class})
 public class LocalDataFlowServerAutoConfiguration {
 
 	@Bean

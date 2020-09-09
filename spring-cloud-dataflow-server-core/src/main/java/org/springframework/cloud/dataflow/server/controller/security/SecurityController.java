@@ -17,7 +17,8 @@
 package org.springframework.cloud.dataflow.server.controller.security;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.common.security.support.SecurityStateBean;
+import org.springframework.cloud.dataflow.common.security.SecurityState;
+// import org.springframework.cloud.common.security.support.SecurityStateBean;
 import org.springframework.cloud.dataflow.rest.resource.security.SecurityInfoResource;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -46,12 +47,12 @@ import org.springframework.web.bind.annotation.RestController;
 @ExposesResourceFor(SecurityInfoResource.class)
 public class SecurityController {
 
-	private final SecurityStateBean securityStateBean;
+	private final SecurityState securityStateBean;
 
-	@Value("${security.oauth2.client.client-id:#{null}}")
-	private String oauthClientId;
+	// @Value("${security.oauth2.client.client-id:#{null}}")
+	// private String oauthClientId;
 
-	public SecurityController(SecurityStateBean securityStateBean) {
+	public SecurityController(SecurityState securityStateBean) {
 		this.securityStateBean = securityStateBean;
 	}
 

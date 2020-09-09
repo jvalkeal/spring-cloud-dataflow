@@ -25,9 +25,9 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.cloud.common.security.support.AuthoritiesMapper;
-import org.springframework.cloud.common.security.support.CoreSecurityRoles;
-import org.springframework.cloud.common.security.support.SecurityConfigUtils;
+// import org.springframework.cloud.common.security.support.AuthoritiesMapper;
+// import org.springframework.cloud.common.security.support.CoreSecurityRoles;
+// import org.springframework.cloud.common.security.support.SecurityConfigUtils;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  *
  */
-public class CloudFoundryDataflowAuthoritiesMapper implements AuthoritiesMapper {
+public class CloudFoundryDataflowAuthoritiesMapper /*implements AuthoritiesMapper*/ {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(CloudFoundryDataflowAuthoritiesMapper.class);
@@ -61,23 +61,23 @@ public class CloudFoundryDataflowAuthoritiesMapper implements AuthoritiesMapper 
 	 * @param scopes Not used
 	 * @param token Must not be null or empty.
 	 */
-	@Override
-	public Set<GrantedAuthority> mapScopesToAuthorities(String providerId, Set<String> scopes, String token) {
-		if (cloudFoundrySecurityService.isSpaceDeveloper(token)) {
-			final List<String> rolesAsStrings = new ArrayList<>();
-			final Set<GrantedAuthority> grantedAuthorities = Stream.of(CoreSecurityRoles.values())
-					.map(roleEnum -> {
-						final String roleName = SecurityConfigUtils.ROLE_PREFIX + roleEnum.getKey();
-						rolesAsStrings.add(roleName);
-						return new SimpleGrantedAuthority(roleName);
-					})
-					.collect(Collectors.toSet());
-			logger.info("Adding ALL roles {} to Cloud Foundry Space Developer user.",
-					StringUtils.collectionToCommaDelimitedString(rolesAsStrings));
-			return grantedAuthorities;
-		}
-		else {
-			return Collections.emptySet();
-		}
-	}
+	// @Override
+	// public Set<GrantedAuthority> mapScopesToAuthorities(String providerId, Set<String> scopes, String token) {
+	// 	if (cloudFoundrySecurityService.isSpaceDeveloper(token)) {
+	// 		final List<String> rolesAsStrings = new ArrayList<>();
+	// 		final Set<GrantedAuthority> grantedAuthorities = Stream.of(CoreSecurityRoles.values())
+	// 				.map(roleEnum -> {
+	// 					final String roleName = SecurityConfigUtils.ROLE_PREFIX + roleEnum.getKey();
+	// 					rolesAsStrings.add(roleName);
+	// 					return new SimpleGrantedAuthority(roleName);
+	// 				})
+	// 				.collect(Collectors.toSet());
+	// 		logger.info("Adding ALL roles {} to Cloud Foundry Space Developer user.",
+	// 				StringUtils.collectionToCommaDelimitedString(rolesAsStrings));
+	// 		return grantedAuthorities;
+	// 	}
+	// 	else {
+	// 		return Collections.emptySet();
+	// 	}
+	// }
 }
