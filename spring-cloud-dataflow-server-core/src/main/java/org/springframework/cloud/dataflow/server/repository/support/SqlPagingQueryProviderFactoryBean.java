@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.dataflow.server.repository.support;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -47,6 +49,8 @@ public class SqlPagingQueryProviderFactoryBean implements FactoryBean<PagingQuer
 
 	private Map<String, Order> sortKeys;
 
+	private List<String> allowedSortKeys;
+
 	private Map<DatabaseType, AbstractSqlPagingQueryProvider> providers = new HashMap<DatabaseType, AbstractSqlPagingQueryProvider>();
 
 	{
@@ -57,6 +61,7 @@ public class SqlPagingQueryProviderFactoryBean implements FactoryBean<PagingQuer
 		providers.put(DatabaseType.ORACLE, new OraclePagingQueryProvider());
 		providers.put(DatabaseType.SQLSERVER, new SqlServerPagingQueryProvider());
 		providers.put(DatabaseType.DB2, new Db2PagingQueryProvider());
+		allowedSortKeys = Arrays.asList("e.TASK_EXECUTION_ID", "TASK_EXECUTION_ID", "START_TIME", "END_TIME");
 	}
 
 	/**
@@ -106,6 +111,17 @@ public class SqlPagingQueryProviderFactoryBean implements FactoryBean<PagingQuer
 	}
 
 	/**
+	 * Sets allowed sorting keys. For convenience defaults to common
+	 * column names used in tasks.
+	 *
+	 * @param allowedSortKeys the allowed sorting keys
+	 */
+	public void setAllowedSortKeys(List<String> allowedSortKeys) {
+		Assert.notNull(allowedSortKeys, "allowedSortKeys must not be null");
+		this.allowedSortKeys = allowedSortKeys;
+	}
+
+	/**
 	 * Get a {@link PagingQueryProvider} instance using the provided properties and
 	 * appropriate for the given database type.
 	 *
@@ -122,6 +138,12 @@ public class SqlPagingQueryProviderFactoryBean implements FactoryBean<PagingQuer
 		catch (MetaDataAccessException e) {
 			throw new IllegalArgumentException(
 					"Could not inspect meta data for database type.  You have to supply it explicitly.", e);
+		}
+
+		if (sortKeys != null && !sortKeys.keySet().stream().allMatch(element -> allowedSortKeys.contains(element))) {
+			throw new IllegalArgumentException("At least one sorting key is not in allowed sorting keys, sortKeys="
+					+ StringUtils.collectionToDelimitedString(sortKeys.keySet(), ",") + " allowed="
+					+ StringUtils.collectionToDelimitedString(allowedSortKeys, ","));
 		}
 
 		AbstractSqlPagingQueryProvider provider = providers.get(type);
