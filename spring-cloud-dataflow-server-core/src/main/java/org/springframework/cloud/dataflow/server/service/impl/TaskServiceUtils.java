@@ -94,7 +94,18 @@ public class TaskServiceUtils {
 		for (TaskApp subTask : taskNode.getTaskApps()) {
 			result = updateProperties(taskNode, subTask, taskDeploymentProperties, result, "app");
 			result = updateProperties(taskNode, subTask, taskDeploymentProperties, result, "deployer");
+			result = updateVersionProperties(taskNode, subTask, taskDeploymentProperties, result, "version");
 		}
+		// String versionProperties = taskDeploymentProperties.entrySet().stream()
+		// 	.filter(e -> e.getKey().startsWith("version."))
+		// 	.map(e -> e.getKey() + "=" + e.getValue())
+		// 	.collect(Collectors.joining(", "));
+		// if (StringUtils.hasText(versionProperties)) {
+		// 	if (result.length() != 0) {
+		// 		result += ", ";
+		// 	}
+		// 	result += versionProperties;
+		// }
 		if (result.length() != 0) {
 			taskDeploymentProperties.put("app.composed-task-runner.composed-task-properties", result);
 		}
@@ -233,6 +244,26 @@ public class TaskServiceUtils {
 					taskProperty.substring(subTaskName.length()),
 					taskDeploymentProperties.get(taskProperty));
 			taskDeploymentProperties.remove(taskProperty);
+		}
+		return result;
+	}
+
+	private static String updateVersionProperties(TaskNode taskNode, TaskApp subTask, Map<String, String> taskDeploymentProperties,
+			String result, String prefix) {
+		String subTaskName1 = String.format("%s.%s-%s", prefix, taskNode.getName(),
+				(subTask.getLabel() == null) ? subTask.getName() : subTask.getLabel());
+		String subTaskName2 = String.format("%s.%s", prefix,
+				(subTask.getLabel() == null) ? subTask.getName() : subTask.getLabel());
+
+		String versionProperties = taskDeploymentProperties.entrySet().stream()
+				.filter(e -> e.getKey().startsWith(subTaskName1) || e.getKey().startsWith(subTaskName2))
+				.map(e -> e.getKey() + "=" + e.getValue())
+				.collect(Collectors.joining(", "));
+		if (StringUtils.hasText(versionProperties)) {
+			if (result.length() != 0) {
+				result += ", ";
+			}
+			result += versionProperties;
 		}
 		return result;
 	}

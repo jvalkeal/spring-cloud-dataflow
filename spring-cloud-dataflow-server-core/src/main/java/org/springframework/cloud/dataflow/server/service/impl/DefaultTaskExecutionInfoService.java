@@ -188,8 +188,20 @@ public class DefaultTaskExecutionInfoService implements TaskExecutionInfoService
 		else {
 			taskDefinitionToUse = TaskServiceUtils.updateTaskProperties(originalTaskDefinition,
 					dataSourceProperties, addDatabaseCredentials);
-			appRegistration = appRegistryService.find(taskDefinitionToUse.getRegisteredAppName(),
-					ApplicationType.task);
+			String version = taskDeploymentProperties.get("version." + taskName);
+			if (version == null) {
+				String subTaskName = taskName.substring(taskName.indexOf('-') + 1);
+				version = taskDeploymentProperties.get("version." + subTaskName);
+			}
+			// if we have version, use that or rely on default version set
+			if (version == null) {
+				appRegistration = appRegistryService.find(taskDefinitionToUse.getRegisteredAppName(),
+						ApplicationType.task);
+			}
+			else {
+				appRegistration = appRegistryService.find(taskDefinitionToUse.getRegisteredAppName(),
+						ApplicationType.task, version);
+			}
 		}
 
 		Assert.notNull(appRegistration, "Unknown task app: " + taskDefinitionToUse.getRegisteredAppName());

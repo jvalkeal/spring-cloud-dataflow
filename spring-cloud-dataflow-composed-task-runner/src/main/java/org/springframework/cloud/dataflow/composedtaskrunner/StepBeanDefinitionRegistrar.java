@@ -156,6 +156,9 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 		Map<String, String> deploymentProperties = new HashMap<>();
 		updateDeploymentProperties(String.format("app.%s.", taskName), taskDeploymentProperties, deploymentProperties);
 		updateDeploymentProperties(String.format("deployer.%s.", taskName), taskDeploymentProperties, deploymentProperties);
+		updateVersionDeploymentProperties(String.format("version.%s", taskName), taskDeploymentProperties, deploymentProperties);
+		String subTaskName = taskName.substring(taskName.indexOf('-') + 1);
+		updateVersionDeploymentProperties(String.format("version.%s", subTaskName), taskDeploymentProperties, deploymentProperties);
 		return deploymentProperties;
 	}
 
@@ -165,6 +168,15 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 			if (entry.getKey().startsWith(prefix)) {
 				deploymentProperties.put(entry.getKey()
 						.substring(prefix.length()), entry.getValue());
+			}
+		}
+	}
+
+	private void updateVersionDeploymentProperties(String prefix, Map<String, String> taskDeploymentProperties,
+			Map<String, String> deploymentProperties) {
+		for (Map.Entry<String, String> entry : taskDeploymentProperties.entrySet()) {
+			if (entry.getKey().startsWith(prefix)) {
+				deploymentProperties.put(entry.getKey(), entry.getValue());
 			}
 		}
 	}

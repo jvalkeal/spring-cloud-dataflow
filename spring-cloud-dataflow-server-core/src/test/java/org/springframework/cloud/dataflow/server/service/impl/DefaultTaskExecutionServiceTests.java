@@ -38,7 +38,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-
+import org.mockito.ArgumentMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -102,6 +102,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -368,6 +370,54 @@ public abstract class DefaultTaskExecutionServiceTests {
 			assertEquals("default", lastManifest.getPlatformName());
 			assertEquals(1, lastManifest.getTaskDeploymentRequest().getDeploymentProperties().size());
 			assertEquals("bar", lastManifest.getTaskDeploymentRequest().getDeploymentProperties().get("app.demo.foo"));
+
+			verify(this.taskLauncher, never()).destroy(TASK_NAME_ORIG);
+		}
+
+		@Test
+		@DirtiesContext
+		public void testSavesVersion() throws IOException {
+			initializeMultiVersionRegistry(appRegistry);
+
+			when(taskLauncher.launch(any())).thenReturn("0", "1");
+
+			Map<String, String> properties = new HashMap<>(1);
+			properties.put("version." + TASK_NAME_ORIG, "1.0.1");
+
+			long firstTaskExecutionId = this.taskExecutionService.executeTask(TASK_NAME_ORIG, properties, new LinkedList<>());
+			this.taskRepository.completeTaskExecution(firstTaskExecutionId, 0, new Date(), "all done");
+			this.taskExecutionService.executeTask(TASK_NAME_ORIG, Collections.emptyMap(), new LinkedList<>());
+
+			TaskManifest lastManifest = this.dataflowTaskExecutionMetadataDao.getLatestManifest(TASK_NAME_ORIG);
+
+			assertEquals("file:src/test/resources/apps/foo-task101", lastManifest.getTaskDeploymentRequest().getResource().getURL().toString());
+			assertEquals("default", lastManifest.getPlatformName());
+			assertEquals(1, lastManifest.getTaskDeploymentRequest().getDeploymentProperties().size());
+			assertEquals("1.0.1", lastManifest.getTaskDeploymentRequest().getDeploymentProperties().get("version." + TASK_NAME_ORIG));
+
+			verify(this.taskLauncher, never()).destroy(TASK_NAME_ORIG);
+		}
+
+		@Test
+		@DirtiesContext
+		public void testSavesVersion2() throws IOException {
+			initializeMultiVersionRegistry(appRegistry);
+
+			when(taskLauncher.launch(any())).thenReturn("0", "1");
+
+			Map<String, String> properties = new HashMap<>(1);
+			properties.put("version." + "ORIG", "1.0.1");
+
+			long firstTaskExecutionId = this.taskExecutionService.executeTask(TASK_NAME_ORIG, properties, new LinkedList<>());
+			this.taskRepository.completeTaskExecution(firstTaskExecutionId, 0, new Date(), "all done");
+			this.taskExecutionService.executeTask(TASK_NAME_ORIG, Collections.emptyMap(), new LinkedList<>());
+
+			TaskManifest lastManifest = this.dataflowTaskExecutionMetadataDao.getLatestManifest(TASK_NAME_ORIG);
+
+			assertEquals("file:src/test/resources/apps/foo-task101", lastManifest.getTaskDeploymentRequest().getResource().getURL().toString());
+			assertEquals("default", lastManifest.getPlatformName());
+			assertEquals(1, lastManifest.getTaskDeploymentRequest().getDeploymentProperties().size());
+			assertEquals("1.0.1", lastManifest.getTaskDeploymentRequest().getDeploymentProperties().get("version." + "ORIG"));
 
 			verify(this.taskLauncher, never()).destroy(TASK_NAME_ORIG);
 		}
@@ -982,6 +1032,38 @@ public abstract class DefaultTaskExecutionServiceTests {
 
 		@Test
 		@DirtiesContext
+		public void executeComposedTaskWithVersions() {
+			AppDeploymentRequest request = prepComposedTaskRunnerWithVersions(null);
+			assertEquals("seqTask", request.getDefinition().getProperties().get("spring.cloud.task.name"));
+			assertTrue(request.getDefinition().getProperties().containsKey("composed-task-properties"));
+			assertEquals("version.t1=1.0.0, version.t2=1.0.1",
+					request.getDefinition().getProperties().get("composed-task-properties"));
+			assertEquals("globalvalue", request.getDefinition().getProperties().get("globalkey"));
+			assertNull(request.getDefinition().getProperties().get("globalstreamkey"));
+			assertEquals("default", request.getDefinition().getProperties().get("platform-name"));
+		}
+
+		private AppDeploymentRequest prepComposedTaskRunnerWithVersions(String platformName) {
+			String dsl = "t1:some-name && t2:some-name";
+			initializeMultiVersionRegistry(appRegistry);
+
+			taskSaveService.saveTaskDefinition(new TaskDefinition("seqTask", dsl));
+			when(taskLauncher.launch(any())).thenReturn("0");
+			when(appRegistry.appExist(anyString(), any(ApplicationType.class))).thenReturn(true);
+			Map<String, String> properties = new HashMap<>();
+			if(StringUtils.hasText(platformName)) {
+				properties.put("spring.cloud.dataflow.task.platformName", platformName);
+			}
+			properties.put("version.t1", "1.0.0");
+			properties.put("version.t2", "1.0.1");
+			assertEquals(1L, this.taskExecutionService.executeTask("seqTask", properties, new LinkedList<>()));
+			ArgumentCaptor<AppDeploymentRequest> argumentCaptor = ArgumentCaptor.forClass(AppDeploymentRequest.class);
+			verify(this.taskLauncher, atLeast(1)).launch(argumentCaptor.capture());
+			return argumentCaptor.getValue();
+		}
+
+		@Test
+		@DirtiesContext
 		public void executeComposedTaskNewPlatform() {
 			AppDeploymentRequest request = prepComposedTaskRunner("MyPlatform");
 			assertEquals("seqTask", request.getDefinition().getProperties().get("spring.cloud.task.name"));
@@ -1482,11 +1564,30 @@ public abstract class DefaultTaskExecutionServiceTests {
 		return properties;
 	}
 
-		private static void initializeSuccessfulRegistry(AppRegistryService appRegistry) {
+	private static void initializeSuccessfulRegistry(AppRegistryService appRegistry) {
 		when(appRegistry.find(anyString(), any(ApplicationType.class))).thenReturn(
 				new AppRegistration("some-name", ApplicationType.task, URI.create("https://helloworld")));
 		try {
 			when(appRegistry.getAppResource(any())).thenReturn(new FileUrlResource("src/test/resources/apps/foo-task"));
+		}
+		catch (MalformedURLException e) {
+			throw new IllegalStateException("Invalid File Resource Specified", e);
+		}
+		when(appRegistry.getAppMetadataResource(any())).thenReturn(null);
+	}
+
+	private static void initializeMultiVersionRegistry(AppRegistryService appRegistry) {
+		AppRegistration appRegistration100 = new AppRegistration("some-name", ApplicationType.task, URI.create("https://helloworld/some-name-1.0.0.jar"));
+		AppRegistration appRegistration101 = new AppRegistration("some-name", ApplicationType.task, URI.create("https://helloworld/some-name-1.0.1.jar"));
+		// AppRegistration appRegistrationCtr = new AppRegistration("composed-task-runner", ApplicationType.task, URI.create("https://helloworld/ctr-1.0.0.jar"));
+		when(appRegistry.find(anyString(), any(ApplicationType.class))).thenReturn(appRegistration100);
+		when(appRegistry.find(anyString(), any(ApplicationType.class), eq("1.0.0"))).thenReturn(appRegistration100);
+		when(appRegistry.find(anyString(), any(ApplicationType.class), eq("1.0.1"))).thenReturn(appRegistration101);
+		try {
+			when(appRegistry.getAppResource(eq(appRegistration100))).thenReturn(new FileUrlResource("src/test/resources/apps/foo-task100"));
+			when(appRegistry.getAppResource(eq(appRegistration101))).thenReturn(new FileUrlResource("src/test/resources/apps/foo-task101"));
+			ArgumentMatcher<AppRegistration> ctrMatcher = ap -> ap != null && ap.getName().equals("composed-task-runner");
+			when(appRegistry.getAppResource(argThat(ctrMatcher))).thenReturn(new FileUrlResource("src/test/resources/apps/ctr"));
 		}
 		catch (MalformedURLException e) {
 			throw new IllegalStateException("Invalid File Resource Specified", e);
