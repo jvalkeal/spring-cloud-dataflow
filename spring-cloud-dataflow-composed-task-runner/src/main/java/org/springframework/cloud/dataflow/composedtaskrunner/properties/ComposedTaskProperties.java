@@ -18,6 +18,7 @@ package org.springframework.cloud.dataflow.composedtaskrunner.properties;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -120,6 +121,8 @@ public class ComposedTaskProperties {
 	 * The arguments to be used for each of the tasks.
 	 */
 	private String composedTaskArguments;
+
+	private Map<String, String> composedTaskAppArguments;
 
 	/**
 	 * Specifies whether to allow split core threads to timeout.
@@ -242,6 +245,14 @@ public class ComposedTaskProperties {
 
 	public void setComposedTaskArguments(String composedTaskArguments) {
 		this.composedTaskArguments = composedTaskArguments;
+	}
+
+	public Map<String, String> getComposedTaskAppArguments() {
+		return composedTaskAppArguments;
+	}
+
+	public void setComposedTaskAppArguments(Map<String, String> composedTaskAppArguments) {
+		this.composedTaskAppArguments = composedTaskAppArguments;
 	}
 
 	public boolean isSplitThreadAllowCoreThreadTimeout() {
