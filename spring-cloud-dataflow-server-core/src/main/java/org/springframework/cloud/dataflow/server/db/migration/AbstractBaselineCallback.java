@@ -57,14 +57,7 @@ public abstract class AbstractBaselineCallback extends AbstractCallback {
 			commands.addAll(defaultCommands);
 		}
 
-		boolean migrateToInitial = true;
-		try {
-			JdbcTemplate jdbcTemplate = new JdbcTemplate(new SingleConnectionDataSource(context.getConnection(), true));
-			jdbcTemplate.execute("select 1 from APP_REGISTRATION");
-			migrateToInitial = false;
-		} catch (Exception e) {
-		}
-
+		boolean migrateToInitial = !doTableExists(context, "APP_REGISTRATION");
 		if (migrateToInitial) {
 			logger.info("Did not detect prior Data Flow schema, doing baseline.");
 			commands.addAll(initialSetupMigration.getCommands());
@@ -83,6 +76,16 @@ public abstract class AbstractBaselineCallback extends AbstractCallback {
 		}
 
 		return commands;
+	}
+
+	protected boolean doTableExists(Context context, String name) {
+		try {
+			JdbcTemplate jdbcTemplate = new JdbcTemplate(new SingleConnectionDataSource(context.getConnection(), true));
+			jdbcTemplate.execute("select 1 from APP_REGISTRATION");
+			return false;
+		} catch (Exception e) {
+		}
+		return true;
 	}
 
 	/**
