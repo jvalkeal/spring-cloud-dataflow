@@ -49,6 +49,9 @@ public abstract class TagNames {
 
 	public static final String DB2 = "db2";
 
+	public static final String UAA = "uaa";
+	public static final String UAA_4_32 = "uaa_4_32";
+
 	public static final String SKIPPER = "skipper";
 	public static final String SKIPPER_2_0 = "skipper_2_0";
 	public static final String SKIPPER_2_1 = "skipper_2_1";

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.containers.Network;
@@ -45,22 +46,26 @@ public class DataflowCluster implements Startable {
 	private final Map<String, ClusterContainer> dataflowImages;
 	private final Map<String, ClusterContainer> skipperImages;
 	private final Map<String, ClusterContainer> databaseImages;
+	private final Map<String, ClusterContainer> oauthImages;
 	private final boolean sharedDatabase;
 	private JdbcDatabaseContainer<?> runningDatabase;
 	private JdbcDatabaseContainer<?> runningSkipperDatabase;
 	private JdbcDatabaseContainer<?> runningDataflowDatabase;
+	private GenericContainer<?> runningOauth;
 	private SkipperContainer<?> runningSkipper;
 	private DataflowContainer<?> runningDataflow;
 	private ClusterContainer skipperDatabaseClusterContainer;
 	private ClusterContainer dataflowDatabaseClusterContainer;
 	private Network network;
 
-	public DataflowCluster(List<ClusterContainer> databaseContainers, List<ClusterContainer> skipperContainers,
-			List<ClusterContainer> dataflowContainers, boolean sharedDatabase) {
+	public DataflowCluster(List<ClusterContainer> databaseContainers, List<ClusterContainer> oauthContainers,
+			List<ClusterContainer> skipperContainers, List<ClusterContainer> dataflowContainers,
+			boolean sharedDatabase) {
 		Assert.notNull(databaseContainers, "databaseContainers must be set");
 		Assert.notNull(skipperContainers, "skipperContainers must be set");
 		Assert.notNull(dataflowContainers, "dataflowContainers must be set");
 		this.databaseImages = databaseContainers.stream().collect(Collectors.toMap(cc -> cc.id, cc -> cc));
+		this.oauthImages = oauthContainers.stream().collect(Collectors.toMap(cc -> cc.id, cc -> cc));
 		this.skipperImages = skipperContainers.stream().collect(Collectors.toMap(cc -> cc.id, cc -> cc));
 		this.dataflowImages = dataflowContainers.stream().collect(Collectors.toMap(cc -> cc.id, cc -> cc));
 		this.sharedDatabase = sharedDatabase;
@@ -76,7 +81,12 @@ public class DataflowCluster implements Startable {
 		stopSkipper();
 		stopDataflow();
 		stopDatabase();
+		stopIdentityProvider();
 		this.network.close();
+	}
+
+	public Network getNetwork() {
+		return network;
 	}
 
 	public void startSkipperDatabase(String id) {
@@ -144,6 +154,24 @@ public class DataflowCluster implements Startable {
 
 	private JdbcDatabaseContainer<?> getDataflowDatabaseContainer() {
 		return sharedDatabase ? runningDatabase : runningDataflowDatabase;
+	}
+
+	public void startIdentityProvider(String id) {
+		ClusterContainer clusterContainer = this.oauthImages.get(id);
+		Assert.notNull(clusterContainer, String.format("Unknown oauth %s", id));
+
+		GenericContainer<?> oauthContainer = new GenericContainer<>(clusterContainer.image);
+		oauthContainer.withNetworkAliases("oauth");
+		oauthContainer.withNetwork(network);
+		oauthContainer.withExposedPorts(8080);
+		oauthContainer.start();
+		runningOauth = oauthContainer;
+	}
+
+	public void stopIdentityProvider() {
+		if (runningOauth != null) {
+			runningOauth.stop();
+		}
 	}
 
 	public void startSkipper(String id) {
@@ -324,8 +352,35 @@ public class DataflowCluster implements Startable {
 		dataflowContainer.withEnv("SPRING_DATASOURCE_PASSWORD", "spring");
 		dataflowContainer.withEnv("SPRING_CLOUD_SKIPPER_CLIENT_SERVER_URI",
 				String.format("http://%s:%s/api", "skipper", SKIPPER_PORT));
+
+
+		// dataflowContainer.withEnv("", "");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.map-oauth-scopes", "true");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_CREATE", "dataflow.create");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_DEPLOY", "dataflow.deploy");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_DESTROY", "dataflow.destroy");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_MANAGE", "dataflow.manage");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_MODIFY", "dataflow.modify");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_SCHEDULE", "dataflow.schedule");
+		dataflowContainer.withEnv("spring.cloud.dataflow.security.authorization.provider-role-mappings.uaa.role-mappings.ROLE_VIEW", "dataflow.view");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_UAA_REDIRECT_URI", "{baseUrl}/login/oauth2/code/{registrationId}");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_UAA_AUTHORIZATION_GRANT_TYPE", "authorization_code");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_UAA_CLIENT_ID", "dataflow");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_UAA_CLIENT_SECRET", "secret");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_UAA_SCOPE", "openid,dataflow.create,dataflow.deploy,dataflow.destroy,dataflow.manage,dataflow.modify,dataflow.schedule,dataflow.view");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_UAA_JWK_SET_URI", "http://oauth:8080/uaa/token_keys");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_UAA_TOKEN_URI", "http://oauth:8080/uaa/oauth/token");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_UAA_USER_INFO_URI", "http://oauth:8080/uaa/userinfo");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_UAA_USER_NAME_ATTRIBUTE", "user_name");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_UAA_AUTHORIZATION_URI", "http://oauth:8080/uaa/oauth/authorize");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_INTROSPECTION_URI", "http://oauth:8080/uaa/introspect");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID", "dataflow");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_SECRET", "secret");
+		dataflowContainer.withEnv("SPRING_SECURITY_OAUTH2_AUTHORIZATION_CHECK_TOKEN_ACCESS", "isAuthenticated()");
+
+
 		dataflowContainer.withLogConsumer(new Slf4jLogConsumer(logger));
-		databaseContainer.withNetworkAliases("dataflow");
+		dataflowContainer.withNetworkAliases("dataflow");
 		dataflowContainer.withNetwork(network);
 		return dataflowContainer;
 	}

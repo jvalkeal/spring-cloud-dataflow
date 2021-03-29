@@ -71,11 +71,23 @@ public abstract class AssertUtils {
 				.atMost(awaitInterval, awaitTimeUnit)
 				.until(() -> {
 					log.debug("Checking url {}", url);
-					String response = template.getForObject(url, String.class);
-					log.debug("Response is {}", response);
-					boolean ok = response.contains(responseContains);
+
+					boolean ok = false;
+					try {
+						String response = template.getForObject(url, String.class);
+						log.debug("Response is {}", response);
+						ok = response.contains(responseContains);
+					} catch (Exception e) {
+						log.debug("Error in check", e);
+						throw e;
+					}
 					log.info("Check {} for url {}", ok, url);
 					return ok;
+					// String response = template.getForObject(url, String.class);
+					// log.debug("Response is {}", response);
+					// boolean ok = response.contains(responseContains);
+					// log.info("Check {} for url {}", ok, url);
+					// return ok;
 				});
 	}
 }

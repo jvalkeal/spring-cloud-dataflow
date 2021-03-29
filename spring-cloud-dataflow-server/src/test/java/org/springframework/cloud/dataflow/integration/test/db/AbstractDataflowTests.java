@@ -79,6 +79,9 @@ public abstract class AbstractDataflowTests {
 			ClusterContainer.from(TagNames.MARIADB_10_4, "mariadb:10.5", TagNames.MARIADB),
 			ClusterContainer.from(TagNames.MARIADB_10_5, "mariadb:10.5", TagNames.MARIADB)
 			);
+	public final static List<ClusterContainer> OAUTH_CONTAINERS = Arrays.asList(
+			ClusterContainer.from(TagNames.UAA_4_32, "springcloud/uaa:test1", TagNames.UAA)
+			);
 
 	@Autowired
     private IntegrationTestProperties testProperties;
@@ -93,8 +96,8 @@ public abstract class AbstractDataflowTests {
 
 	@BeforeEach
 	public void setupCluster() {
-		this.dataflowCluster = new DataflowCluster(getDatabaseContainers(), getSkipperContainers(),
-				getDataflowContainers(), testProperties.getDatabase().isSharedDatabase());
+		this.dataflowCluster = new DataflowCluster(getDatabaseContainers(), getOauthContainers(),
+				getSkipperContainers(), getDataflowContainers(), testProperties.getDatabase().isSharedDatabase());
 	}
 
 	protected DataflowCluster dataflowCluster;
@@ -109,6 +112,11 @@ public abstract class AbstractDataflowTests {
 
 	protected List<ClusterContainer> getDatabaseContainers() {
 		ArrayList<ClusterContainer> containers = new ArrayList<>(DATABASE_CONTAINERS);
+		return containers;
+	}
+
+	protected List<ClusterContainer> getOauthContainers() {
+		ArrayList<ClusterContainer> containers = new ArrayList<>(OAUTH_CONTAINERS);
 		return containers;
 	}
 

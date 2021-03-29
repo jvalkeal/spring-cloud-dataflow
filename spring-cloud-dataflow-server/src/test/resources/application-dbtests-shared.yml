@@ -7,3 +7,6 @@ test:
     dataflow-version: "@project.version@"
     skipper-version: "@spring-cloud-skipper.version@"
     shared-database: true
+logging:
+  level:
+    org.springframework.cloud.dataflow.integration.test: debug
