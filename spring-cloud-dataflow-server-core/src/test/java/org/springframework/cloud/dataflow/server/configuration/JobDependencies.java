@@ -56,6 +56,7 @@ import org.springframework.cloud.dataflow.server.DockerValidatorProperties;
 import org.springframework.cloud.dataflow.server.batch.JobService;
 import org.springframework.cloud.dataflow.server.batch.SimpleJobServiceFactoryBean;
 import org.springframework.cloud.dataflow.server.config.apps.CommonApplicationProperties;
+import org.springframework.cloud.dataflow.server.config.web.HypermediaBareJsonConfiguration;
 import org.springframework.cloud.dataflow.server.controller.JobExecutionController;
 import org.springframework.cloud.dataflow.server.controller.JobExecutionThinController;
 import org.springframework.cloud.dataflow.server.controller.JobInstanceController;
@@ -109,6 +110,7 @@ import org.springframework.cloud.task.repository.support.SimpleTaskRepository;
 import org.springframework.cloud.task.repository.support.TaskExecutionDaoFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
@@ -135,6 +137,7 @@ import static org.mockito.Mockito.mock;
 @Configuration
 @EnableSpringDataWebSupport
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
+@Import(HypermediaBareJsonConfiguration.class)
 @ImportAutoConfiguration({ HibernateJpaAutoConfiguration.class, FlywayAutoConfiguration.class })
 @EnableWebMvc
 @EnableTransactionManagement

@@ -33,6 +33,7 @@ import org.springframework.cloud.dataflow.registry.repository.AppRegistrationRep
 import org.springframework.cloud.dataflow.registry.repository.AppRegistrationRepositoryImpl;
 import org.springframework.cloud.dataflow.server.config.apps.CommonApplicationProperties;
 import org.springframework.cloud.dataflow.server.config.features.FeaturesConfiguration;
+import org.springframework.cloud.dataflow.server.config.web.HypermediaBareJsonConfiguration;
 import org.springframework.cloud.dataflow.server.config.web.WebConfiguration;
 import org.springframework.cloud.dataflow.server.db.migration.DataFlowFlywayConfigurationCustomizer;
 import org.springframework.cloud.dataflow.server.repository.DataflowJobExecutionDao;
@@ -72,6 +73,7 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
 @EnableSpringDataWebSupport
 @Configuration
+// @Import({ CompletionConfiguration.class, FeaturesConfiguration.class, HypermediaBareJsonConfiguration.class, WebConfiguration.class })
 @Import({ CompletionConfiguration.class, FeaturesConfiguration.class, WebConfiguration.class })
 @EnableConfigurationProperties({ BatchProperties.class, CommonApplicationProperties.class })
 public class DataFlowServerConfiguration {
@@ -123,13 +125,13 @@ public class DataFlowServerConfiguration {
 		return new JdbcDataflowTaskExecutionMetadataDao(dataSource, incrementerFactory.getIncrementer(databaseType,
 				"task_execution_metadata_seq"));
 	}
-	
+
 	@Bean
 	public AuthenticationSuccessEventListener authenticationSuccessEventListener(
 			AuditRecordService auditRecordService) {
 		return new AuthenticationSuccessEventListener(auditRecordService);
 	}
-	
+
 	@Bean
 	public AppRegistrationRepositoryCustom appRegistrationRepositoryCustom(EntityManager entityManager) {
 		return new AppRegistrationRepositoryImpl(entityManager);

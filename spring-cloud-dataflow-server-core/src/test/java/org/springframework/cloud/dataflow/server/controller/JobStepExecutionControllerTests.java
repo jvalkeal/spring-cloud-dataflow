@@ -58,6 +58,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -167,6 +168,7 @@ public class JobStepExecutionControllerTests {
 	@Test
 	public void testSingleGetStepExecutionProgress() throws Exception {
 		mockMvc.perform(get("/jobs/executions/1/steps/1/progress").accept(MediaType.APPLICATION_JSON))
+				.andDo(print())
 				.andExpect(status().isOk()).andExpect(content().json("{finished: " + false + "}"))
 				.andExpect(content().json("{percentageComplete: " + 0.5 + "}"))
 				.andExpect(jsonPath("$.stepExecutionHistory.count", is(0)))

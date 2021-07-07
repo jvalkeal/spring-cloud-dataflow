@@ -73,6 +73,7 @@ import org.springframework.cloud.dataflow.server.config.DataflowMetricsPropertie
 import org.springframework.cloud.dataflow.server.config.VersionInfoProperties;
 import org.springframework.cloud.dataflow.server.config.apps.CommonApplicationProperties;
 import org.springframework.cloud.dataflow.server.config.features.FeaturesProperties;
+import org.springframework.cloud.dataflow.server.config.web.HypermediaBareJsonConfiguration;
 import org.springframework.cloud.dataflow.server.controller.AboutController;
 import org.springframework.cloud.dataflow.server.controller.AppRegistryController;
 import org.springframework.cloud.dataflow.server.controller.AuditRecordController;
@@ -198,7 +199,7 @@ import static org.mockito.Mockito.when;
 @Configuration
 @EnableSpringDataWebSupport
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
-@Import(CompletionConfiguration.class)
+@Import({CompletionConfiguration.class, HypermediaBareJsonConfiguration.class})
 @ImportAutoConfiguration({ HibernateJpaAutoConfiguration.class,
 		JacksonAutoConfiguration.class,
 		FlywayAutoConfiguration.class,
