@@ -23,11 +23,20 @@ import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.explore.support.JobExplorerFactoryBean;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.database.support.DataFieldMaxValueIncrementerFactory;
 import org.springframework.batch.item.database.support.DefaultDataFieldMaxValueIncrementerFactory;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -36,6 +45,9 @@ import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
+import org.springframework.boot.autoconfigure.hateoas.HypermediaAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,10 +64,21 @@ import org.springframework.cloud.dataflow.registry.repository.AppRegistrationRep
 import org.springframework.cloud.dataflow.registry.service.AppRegistryService;
 import org.springframework.cloud.dataflow.registry.service.DefaultAppRegistryService;
 import org.springframework.cloud.dataflow.registry.support.AppResourceCommon;
+import org.springframework.cloud.dataflow.rest.job.StepExecutionHistory;
+import org.springframework.cloud.dataflow.rest.support.jackson.ExecutionContextJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.ISO8601DateFormatWithMilliSeconds;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.ExitStatusJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.JobExecutionJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.JobInstanceJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.JobParameterJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.JobParametersJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.StepExecutionHistoryJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.xxx.StepExecutionJacksonMixIn;
 import org.springframework.cloud.dataflow.server.DockerValidatorProperties;
 import org.springframework.cloud.dataflow.server.batch.JobService;
 import org.springframework.cloud.dataflow.server.batch.SimpleJobServiceFactoryBean;
 import org.springframework.cloud.dataflow.server.config.apps.CommonApplicationProperties;
+import org.springframework.cloud.dataflow.server.config.web.HypermediaBareJsonConfiguration;
 import org.springframework.cloud.dataflow.server.controller.JobExecutionController;
 import org.springframework.cloud.dataflow.server.controller.JobExecutionThinController;
 import org.springframework.cloud.dataflow.server.controller.JobInstanceController;
@@ -109,6 +132,7 @@ import org.springframework.cloud.task.repository.support.SimpleTaskRepository;
 import org.springframework.cloud.task.repository.support.TaskExecutionDaoFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
@@ -134,8 +158,9 @@ import static org.mockito.Mockito.mock;
  */
 @Configuration
 @EnableSpringDataWebSupport
-@EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
-@ImportAutoConfiguration({ HibernateJpaAutoConfiguration.class, FlywayAutoConfiguration.class })
+// @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
+// @Import(HypermediaBareJsonConfiguration.class)
+@ImportAutoConfiguration({ HibernateJpaAutoConfiguration.class, JacksonAutoConfiguration.class, FlywayAutoConfiguration.class, HypermediaAutoConfiguration.class })
 @EnableWebMvc
 @EnableTransactionManagement
 @EntityScan({
@@ -152,6 +177,26 @@ import static org.mockito.Mockito.mock;
 		TaskProperties.class, ComposedTaskRunnerConfigurationProperties.class})
 @EnableMapRepositories(basePackages = "org.springframework.cloud.dataflow.server.job")
 public class JobDependencies {
+
+	@Bean
+	public Jackson2ObjectMapperBuilderCustomizer dataflowObjectMapperBuilderCustomizer() {
+		return (builder) -> {
+			builder.dateFormat(new ISO8601DateFormatWithMilliSeconds());
+			builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+			builder.mixIn(JobExecution.class, JobExecutionJacksonMixIn.class);
+			builder.mixIn(JobParameters.class, JobParametersJacksonMixIn.class);
+			builder.mixIn(JobParameter.class, JobParameterJacksonMixIn.class);
+			builder.mixIn(JobInstance.class, JobInstanceJacksonMixIn.class);
+			builder.mixIn(ExitStatus.class, ExitStatusJacksonMixIn.class);
+			builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+			builder.mixIn(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);;
+			// builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			// builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+			builder.modules(new JavaTimeModule());
+		};
+	}
 
 	@Bean
 	public AuditRecordService auditRecordService(AuditRecordRepository auditRecordRepository) {

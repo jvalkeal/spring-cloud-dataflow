@@ -18,7 +18,9 @@ package org.springframework.cloud.dataflow.rest.client;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -152,6 +154,7 @@ public class DataFlowTemplate implements DataFlowOperations {
 
 		this.restTemplate = prepareRestTemplate(restTemplate);
 
+		// String foo = restTemplate.getForObject(baseURI, String.class);
 		final RootResource resourceSupport = restTemplate.getForObject(baseURI, RootResource.class);
 
 		if (resourceSupport != null) {
@@ -247,6 +250,18 @@ public class DataFlowTemplate implements DataFlowOperations {
 		}
 
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
+
+		// List<HttpMessageConverter<? extends Object>> converters = restTemplate.getMessageConverters().stream().map(converter -> {
+		// 	if (converter instanceof MappingJackson2HttpMessageConverter) {
+		// 		MappingJackson2HttpMessageConverter jacksonConverter = (MappingJackson2HttpMessageConverter) converter;
+		// 		// MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter();
+		// 		DataFlowTemplate.prepareObjectMapper(jacksonConverter.getObjectMapper());
+		// 		return jacksonConverter;
+		// 	}
+		// 	return converter;
+		// }).collect(Collectors.toList());
+
+		// restTemplate.setMessageConverters(converters);
 
 		boolean containsMappingJackson2HttpMessageConverter = false;
 
