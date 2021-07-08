@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.dataflow.rest.client.support;
+package org.springframework.cloud.dataflow.rest.support.jackson;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.ExitStatus;
 
 /**
- * Jackson MixIn for {@link JobInstance} de-serialization.
+ * Jackson MixIn for {@link ExitStatus} de-serialization.
  *
  * @author Gunnar Hillert
- * @author Gary Russell
  * @since 1.0
  */
-@JsonIgnoreProperties({ "instanceId" })
-public abstract class JobInstanceJacksonMixIn {
+@JsonIgnoreProperties("running")
+public abstract class ExitStatusJacksonMixIn {
 
-	JobInstanceJacksonMixIn(@JsonProperty("id") Long id, @JsonProperty("jobName") String jobName) {
+	ExitStatusJacksonMixIn(@JsonProperty("exitCode") String exitCode,
+			@JsonProperty("exitDescription") String exitDescription) {
 	}
 
+	@JsonProperty
+	abstract boolean isRunning();
 }

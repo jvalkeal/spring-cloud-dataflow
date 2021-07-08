@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.dataflow.rest.client.support;
+package org.springframework.cloud.dataflow.rest.support.jackson;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.springframework.batch.core.ExitStatus;
-
 /**
- * Jackson MixIn for {@link ExitStatus} de-serialization.
+ * Jackson MixIn for StepExecutionHistory de-serialization.
  *
- * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
+ * @author Glenn Renfro
  * @since 1.0
  */
-@JsonIgnoreProperties("running")
-public abstract class ExitStatusJacksonMixIn {
 
-	ExitStatusJacksonMixIn(@JsonProperty("exitCode") String exitCode,
-			@JsonProperty("exitDescription") String exitDescription) {
+@JsonIgnoreProperties({ "durationPerRead" })
+public abstract class StepExecutionHistoryJacksonMixIn {
+
+	@JsonCreator
+	StepExecutionHistoryJacksonMixIn(@JsonProperty("stepName") String stepName) {
 	}
 
-	@JsonProperty
-	abstract boolean isRunning();
 }

@@ -18,7 +18,9 @@ package org.springframework.cloud.dataflow.rest.client;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -30,17 +32,18 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.cloud.dataflow.rest.Version;
-import org.springframework.cloud.dataflow.rest.client.support.ExitStatusJacksonMixIn;
-import org.springframework.cloud.dataflow.rest.client.support.JobExecutionJacksonMixIn;
-import org.springframework.cloud.dataflow.rest.client.support.JobInstanceJacksonMixIn;
-import org.springframework.cloud.dataflow.rest.client.support.JobParameterJacksonMixIn;
-import org.springframework.cloud.dataflow.rest.client.support.JobParametersJacksonMixIn;
-import org.springframework.cloud.dataflow.rest.client.support.StepExecutionHistoryJacksonMixIn;
-import org.springframework.cloud.dataflow.rest.client.support.StepExecutionJacksonMixIn;
 import org.springframework.cloud.dataflow.rest.job.StepExecutionHistory;
 import org.springframework.cloud.dataflow.rest.resource.RootResource;
 import org.springframework.cloud.dataflow.rest.resource.about.AboutResource;
 import org.springframework.cloud.dataflow.rest.support.jackson.ExecutionContextJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.ExitStatusJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.Jackson2DataflowModule;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobExecutionJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobInstanceJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobParameterJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobParametersJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.StepExecutionHistoryJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.StepExecutionJacksonMixIn;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.UriTemplate;
@@ -152,6 +155,7 @@ public class DataFlowTemplate implements DataFlowOperations {
 
 		this.restTemplate = prepareRestTemplate(restTemplate);
 
+		// String foo = restTemplate.getForObject(baseURI, String.class);
 		final RootResource resourceSupport = restTemplate.getForObject(baseURI, RootResource.class);
 
 		if (resourceSupport != null) {
@@ -248,6 +252,18 @@ public class DataFlowTemplate implements DataFlowOperations {
 
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
 
+		// List<HttpMessageConverter<? extends Object>> converters = restTemplate.getMessageConverters().stream().map(converter -> {
+		// 	if (converter instanceof MappingJackson2HttpMessageConverter) {
+		// 		MappingJackson2HttpMessageConverter jacksonConverter = (MappingJackson2HttpMessageConverter) converter;
+		// 		// MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter();
+		// 		DataFlowTemplate.prepareObjectMapper(jacksonConverter.getObjectMapper());
+		// 		return jacksonConverter;
+		// 	}
+		// 	return converter;
+		// }).collect(Collectors.toList());
+
+		// restTemplate.setMessageConverters(converters);
+
 		boolean containsMappingJackson2HttpMessageConverter = false;
 
 		for (HttpMessageConverter<?> converter : restTemplate.getMessageConverters()) {
@@ -275,15 +291,15 @@ public class DataFlowTemplate implements DataFlowOperations {
 	public static ObjectMapper prepareObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "The objectMapper must not be null.");
 		return objectMapper
-			.registerModule(new Jackson2HalModule())
-			.addMixIn(JobExecution.class, JobExecutionJacksonMixIn.class)
-			.addMixIn(JobParameters.class, JobParametersJacksonMixIn.class)
-			.addMixIn(JobParameter.class, JobParameterJacksonMixIn.class)
-			.addMixIn(JobInstance.class, JobInstanceJacksonMixIn.class)
-			.addMixIn(ExitStatus.class, ExitStatusJacksonMixIn.class)
-			.addMixIn(StepExecution.class, StepExecutionJacksonMixIn.class)
-			.addMixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class)
-			.addMixIn(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
+			.registerModules(new Jackson2HalModule(), new Jackson2DataflowModule());
+			// .addMixIn(JobExecution.class, JobExecutionJacksonMixIn.class)
+			// .addMixIn(JobParameters.class, JobParametersJacksonMixIn.class)
+			// .addMixIn(JobParameter.class, JobParameterJacksonMixIn.class)
+			// .addMixIn(JobInstance.class, JobInstanceJacksonMixIn.class)
+			// .addMixIn(ExitStatus.class, ExitStatusJacksonMixIn.class)
+			// .addMixIn(StepExecution.class, StepExecutionJacksonMixIn.class)
+			// .addMixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class)
+			// .addMixIn(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
 	}
 
 	/**

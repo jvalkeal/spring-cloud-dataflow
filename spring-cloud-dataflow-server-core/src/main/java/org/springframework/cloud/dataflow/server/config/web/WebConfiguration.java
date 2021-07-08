@@ -30,7 +30,12 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import org.h2.tools.Server;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.BeansException;
@@ -40,8 +45,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
+import org.springframework.cloud.dataflow.rest.job.StepExecutionHistory;
 import org.springframework.cloud.dataflow.rest.support.jackson.ExecutionContextJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.ExitStatusJacksonMixIn;
 import org.springframework.cloud.dataflow.rest.support.jackson.ISO8601DateFormatWithMilliSeconds;
+import org.springframework.cloud.dataflow.rest.support.jackson.Jackson2DataflowModule;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobExecutionJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobInstanceJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobParameterJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.JobParametersJacksonMixIn;
+import org.springframework.cloud.dataflow.rest.support.jackson.StepExecutionHistoryJacksonMixIn;
 import org.springframework.cloud.dataflow.rest.support.jackson.StepExecutionJacksonMixIn;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -139,34 +152,46 @@ public class WebConfiguration implements ServletContextInitializer, ApplicationL
 			// apply SCDF Batch Mixins to
 			// ignore the JobExecution in StepExecution to prevent infinite loop.
 			// https://github.com/spring-projects/spring-hateoas/issues/333
-			builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
-			builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
-			builder.modules(new JavaTimeModule(), new Jdk8Module());
+			// builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			// builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+
+			// builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			// builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+			// builder.mixIn(JobExecution.class, JobExecutionJacksonMixIn.class);
+			// builder.mixIn(JobParameters.class, JobParametersJacksonMixIn.class);
+			// builder.mixIn(JobParameter.class, JobParameterJacksonMixIn.class);
+			// builder.mixIn(JobInstance.class, JobInstanceJacksonMixIn.class);
+			// builder.mixIn(ExitStatus.class, ExitStatusJacksonMixIn.class);
+			// builder.mixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+			// builder.mixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+			// builder.mixIn(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);;
+
+			builder.modules(new JavaTimeModule(), new Jdk8Module(), new Jackson2DataflowModule());
 		};
 	}
 
-	@Bean
-	public BeanPostProcessor relProviderOverridingBeanPostProcessor() {
-		return new BeanPostProcessor() {
-			@Override
-			public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-				// Override the LinkRelationProvider to DefaultRelProvider
-				// Since DataFlow UI expects DefaultRelProvider to be used, override any
-				// other instance of
-				// DefaultRelProvider (EvoInflectorRelProvider for instance) with the
-				// DefaultRelProvider.
-				if (beanName != null && beanName.equals(REL_PROVIDER_BEAN_NAME)) {
-					return new DefaultLinkRelationProvider();
-				}
-				return bean;
-			}
+	// @Bean
+	// public BeanPostProcessor relProviderOverridingBeanPostProcessor() {
+	// 	return new BeanPostProcessor() {
+	// 		@Override
+	// 		public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+	// 			// Override the LinkRelationProvider to DefaultRelProvider
+	// 			// Since DataFlow UI expects DefaultRelProvider to be used, override any
+	// 			// other instance of
+	// 			// DefaultRelProvider (EvoInflectorRelProvider for instance) with the
+	// 			// DefaultRelProvider.
+	// 			if (beanName != null && beanName.equals(REL_PROVIDER_BEAN_NAME)) {
+	// 				return new DefaultLinkRelationProvider();
+	// 			}
+	// 			return bean;
+	// 		}
 
-			@Override
-			public Object postProcessAfterInitialization(Object bean, String s) throws BeansException {
-				return bean;
-			}
-		};
-	}
+	// 		@Override
+	// 		public Object postProcessAfterInitialization(Object bean, String s) throws BeansException {
+	// 			return bean;
+	// 		}
+	// 	};
+	// }
 
 	@Override
 	public void onApplicationEvent(ContextClosedEvent event) {

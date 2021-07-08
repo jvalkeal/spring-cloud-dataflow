@@ -61,6 +61,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 /**
  * @author Marius Bogoevici
@@ -162,6 +163,7 @@ public class LocalDataflowResource extends ExternalResource {
 		app = new SpringApplication(TestConfig.class);
 
 		configurableApplicationContext = (WebApplicationContext) app.run(new String[] {
+			    "--logging.level.root=debug",
 				"--spring.cloud.kubernetes.enabled=false",
 				"--" + FeaturesProperties.FEATURES_PREFIX + "." + FeaturesProperties.STREAMS_ENABLED + "="
 						+ this.streamsEnabled,
@@ -176,7 +178,9 @@ public class LocalDataflowResource extends ExternalResource {
 		launcherRepository.save(new Launcher("default", "local", new LocalTaskLauncher(new LocalDeployerProperties())));
 		Collection<Filter> filters = configurableApplicationContext.getBeansOfType(Filter.class).values();
 		mockMvc = MockMvcBuilders.webAppContextSetup(configurableApplicationContext)
-				.addFilters(filters.toArray(new Filter[filters.size()])).build();
+				// .apply(springSecurity())
+				.addFilters(filters.toArray(new Filter[filters.size()]))
+				.build();
 		dataflowPort = configurableApplicationContext.getEnvironment().resolvePlaceholders("${server.port}");
 	}
 
