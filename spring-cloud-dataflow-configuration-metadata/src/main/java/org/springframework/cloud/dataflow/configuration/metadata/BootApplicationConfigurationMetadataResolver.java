@@ -33,6 +33,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.Streams.ArrayCollector;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,8 @@ public class BootApplicationConfigurationMetadataResolver extends ApplicationCon
 
 	private static final String PORT_MAPPING_PROPERTIES = "classpath*:/META-INF/dataflow-configuration-port-mapping.properties";
 
+	private static final String GROUPING_PROPERTIES = "classpath*:/META-INF/dataflow-configuration-grouping.properties";
+
 	private static final String CONFIGURATION_PROPERTIES_CLASSES = "configuration-properties.classes";
 
 	private static final String CONFIGURATION_PROPERTIES_NAMES = "configuration-properties.names";
@@ -91,6 +94,8 @@ public class BootApplicationConfigurationMetadataResolver extends ApplicationCon
 	private static final String CONFIGURATION_PROPERTIES_INBOUND_PORTS = "configuration-properties.inbound-ports";
 
 	private static final String CONFIGURATION_PROPERTIES_OUTBOUND_PORTS = "configuration-properties.outbound-ports";
+
+	private static final String CONFIGURATION_PROPERTIES_GROUPING = "org.springframework.cloud.dataflow.configuration-properties.grouping";
 
 	private static final String CONTAINER_IMAGE_CONFIGURATION_METADATA_LABEL_NAME = "org.springframework.cloud.dataflow.spring-configuration-metadata.json";
 
@@ -141,8 +146,9 @@ public class BootApplicationConfigurationMetadataResolver extends ApplicationCon
 		}
 
 		Resource[] portMappingResources = resourcePatternResolver.getResources(PORT_MAPPING_PROPERTIES);
+		Resource[] groupingResources = resourcePatternResolver.getResources(GROUPING_PROPERTIES);
 		return concatArrays(configurationResources, deprecatedSpringConfigurationResources,
-				deprecatedDataflowConfigurationResources, portMappingResources);
+				deprecatedDataflowConfigurationResources, portMappingResources, groupingResources);
 
 	}
 
@@ -193,6 +199,31 @@ public class BootApplicationConfigurationMetadataResolver extends ApplicationCon
 				else {
 					Archive archive = resolveAsArchive(app);
 					return listPortNames(archive);
+				}
+			}
+		}
+		catch (Exception e) {
+			logger.warn("Failed to retrieve port names for resource {} because of {}",
+					app, ExceptionUtils.getRootCauseMessage(e));
+			if (logger.isDebugEnabled()) {
+				logger.debug("(Details) for failed to retrieve port names for resource:" + app, e);
+			}
+			return Collections.emptyMap();
+		}
+
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public Map<String, Set<String>> listGroupings(Resource app) {
+		try {
+			if (app != null) {
+				if (isDockerSchema(app.getURI())) {
+					return resolveGroupingsFromContainerImage(app.getURI());
+				}
+				else {
+					Archive archive = resolveAsArchive(app);
+					return listGroupings(archive);
 				}
 			}
 		}
@@ -265,6 +296,22 @@ public class BootApplicationConfigurationMetadataResolver extends ApplicationCon
 		return portsMap;
 	}
 
+	private Map<String, Set<String>> resolveGroupingsFromContainerImage(URI imageUri) {
+		String imageName = imageUri.getSchemeSpecificPart();
+		Map<String, String> labels = this.containerImageMetadataResolver.getImageLabels(imageName);
+		if (CollectionUtils.isEmpty(labels)) {
+			return Collections.emptyMap();
+		}
+		Map<String, Set<String>> groupingsMap = new HashMap<>();
+		labels.entrySet().stream()
+			.filter(e -> e.getKey().startsWith(CONFIGURATION_PROPERTIES_GROUPING))
+			.forEach(e -> {
+				String gKey = e.getKey().substring(CONFIGURATION_PROPERTIES_GROUPING.length() + 1);
+				groupingsMap.put(gKey, new HashSet<>(Arrays.asList(StringUtils.delimitedListToStringArray(e.getValue(), ",", " "))));
+			});
+		return groupingsMap;
+	}
+
 	public List<ConfigurationMetadataProperty> listProperties(Archive archive, boolean exhaustive) {
 		try (URLClassLoader moduleClassLoader = new BootClassLoaderFactory(archive, parent).createClassLoader()) {
 			List<ConfigurationMetadataProperty> result = new ArrayList<>();
@@ -334,6 +381,29 @@ public class BootApplicationConfigurationMetadataResolver extends ApplicationCon
 				portsMap.put("outbound", outboundPorts);
 			}
 			return portsMap;
+		}
+		catch (Exception e) {
+			throw new AppMetadataResolutionException(
+					"Exception trying to list configuration properties for application " + archive,
+					e);
+		}
+	}
+
+	private Map<String, Set<String>> listGroupings(Archive archive) {
+		try (URLClassLoader moduleClassLoader = new BootClassLoaderFactory(archive, parent).createClassLoader()) {
+			Map<String, Set<String>> groupingsMap = new HashMap<>();
+			for (Resource resource : visibleConfigurationMetadataResources(moduleClassLoader)) {
+				Properties properties = new Properties();
+				properties.load(resource.getInputStream());
+				for(String key : properties.stringPropertyNames()) {
+					if (key.startsWith(CONFIGURATION_PROPERTIES_GROUPING)) {
+						String value = properties.getProperty(key);
+						String gKey = key.substring(CONFIGURATION_PROPERTIES_GROUPING.length() + 1);
+						groupingsMap.put(gKey, new HashSet<>(Arrays.asList(StringUtils.delimitedListToStringArray(value, ",", " "))));
+					}
+				}
+			}
+			return groupingsMap;
 		}
 		catch (Exception e) {
 			throw new AppMetadataResolutionException(

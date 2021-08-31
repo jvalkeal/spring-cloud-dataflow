@@ -209,6 +209,8 @@ public class AppRegistryController {
 				}
 			}
 		}
+		Map<String, Set<String>> groupingsMap = this.metadataResolver.listGroupings(this.appRegistryService.getAppMetadataResource(registration));
+		result.getGrouping().putAll(groupingsMap);
 		return result;
 	}
 

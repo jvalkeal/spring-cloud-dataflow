@@ -17,8 +17,10 @@
 package org.springframework.cloud.dataflow.rest.resource;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.configurationmetadata.ConfigurationMetadataProperty;
@@ -54,6 +56,8 @@ public class DetailedAppRegistrationResource extends AppRegistrationResource {
 	 * Outbound port names configured for the app.
 	 */
 	private final Set<String> outboundPortNames = new HashSet<>();
+
+	private final Map<String, Set<String>> grouping = new HashMap<>(); 
 
 	/**
 	 * Default constructor for serialization frameworks.
@@ -165,4 +169,7 @@ public class DetailedAppRegistrationResource extends AppRegistrationResource {
 	public static class Page extends PagedModel<DetailedAppRegistrationResource> {
 	}
 
+	public Map<String, Set<String>> getGrouping() {
+		return grouping;
+	}
 }

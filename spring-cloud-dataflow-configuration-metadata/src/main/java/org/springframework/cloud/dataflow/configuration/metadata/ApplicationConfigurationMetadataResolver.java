@@ -63,4 +63,6 @@ public abstract class ApplicationConfigurationMetadataResolver {
 	public abstract List<ConfigurationMetadataProperty> listProperties(Resource metadataResource, boolean exhaustive);
 
 	public abstract Map<String, Set<String>> listPortNames(Resource metadataResource);
+
+	public abstract Map<String, Set<String>> listGroupings(Resource metadataResource);
 }
