@@ -76,6 +76,9 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
   cloud:
+    config:
+      import-check:
+        enabled: false
     task:
       initialize:
         enable: false

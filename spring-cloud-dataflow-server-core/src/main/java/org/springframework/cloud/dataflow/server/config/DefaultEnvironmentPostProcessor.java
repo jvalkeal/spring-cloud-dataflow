@@ -49,6 +49,8 @@ public class DefaultEnvironmentPostProcessor implements EnvironmentPostProcessor
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultEnvironmentPostProcessor.class);
 
+	public static final int ORDER = Ordered.HIGHEST_PRECEDENCE + 999;
+
 	private final Resource serverResource = new ClassPathResource("/dataflow-server.yml");
 
 	private final Resource serverDefaultsResource = new ClassPathResource("META-INF/dataflow-server-defaults.yml");
@@ -106,6 +108,6 @@ public class DefaultEnvironmentPostProcessor implements EnvironmentPostProcessor
 
 	@Override
 	public int getOrder() {
-		return 0;
+		return ORDER;
 	}
 }
