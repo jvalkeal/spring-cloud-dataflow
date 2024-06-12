@@ -18,7 +18,7 @@ package org.springframework.cloud.skipper.server.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.common.security.AuthorizationProperties;
-import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
+// import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
 import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
 import org.springframework.cloud.common.security.support.SecurityConfigUtils;
 import org.springframework.cloud.common.security.support.SecurityStateBean;
@@ -40,66 +40,67 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  */
 @Configuration(proxyBeanMethods = false)
 @Conditional(OnOAuth2SecurityEnabled.class)
-public class SkipperOAuthSecurityConfiguration extends OAuthSecurityConfiguration {
+public class SkipperOAuthSecurityConfiguration {}
+// public class SkipperOAuthSecurityConfiguration extends OAuthSecurityConfiguration {
 
-	@Autowired
-	private SecurityStateBean securityStateBean;
+// 	@Autowired
+// 	private SecurityStateBean securityStateBean;
 
-	@Autowired
-	private AuthorizationProperties authorizationProperties;
+// 	@Autowired
+// 	private AuthorizationProperties authorizationProperties;
 
-	@Override
-	protected HttpBasicConfigurer configure(HttpSecurity http) throws Exception {
+// 	@Override
+// 	protected HttpBasicConfigurer configure(HttpSecurity http) throws Exception {
 
-		final BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
-		basicAuthenticationEntryPoint.setRealmName(SecurityConfigUtils.BASIC_AUTH_REALM_NAME);
-		basicAuthenticationEntryPoint.afterPropertiesSet();
+// 		final BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
+// 		basicAuthenticationEntryPoint.setRealmName(SecurityConfigUtils.BASIC_AUTH_REALM_NAME);
+// 		basicAuthenticationEntryPoint.afterPropertiesSet();
 
-		if (opaqueTokenIntrospector != null) {
-			BasicAuthenticationFilter basicAuthenticationFilter = new BasicAuthenticationFilter(
-					getProviderManager(),
-					basicAuthenticationEntryPoint
-			);
-			http.addFilter(basicAuthenticationFilter);
-		}
+// 		if (opaqueTokenIntrospector != null) {
+// 			BasicAuthenticationFilter basicAuthenticationFilter = new BasicAuthenticationFilter(
+// 					getProviderManager(),
+// 					basicAuthenticationEntryPoint
+// 			);
+// 			http.addFilter(basicAuthenticationFilter);
+// 		}
 
-		getAuthorizationProperties().getAuthenticatedPaths()
-				.add(dashboard(getAuthorizationProperties(), "/**"));
-		getAuthorizationProperties().getAuthenticatedPaths()
-				.add(dashboard(getAuthorizationProperties(), ""));
+// 		getAuthorizationProperties().getAuthenticatedPaths()
+// 				.add(dashboard(getAuthorizationProperties(), "/**"));
+// 		getAuthorizationProperties().getAuthenticatedPaths()
+// 				.add(dashboard(getAuthorizationProperties(), ""));
 
-		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security =
-				http.authorizeRequests()
-						.requestMatchers(getAuthorizationProperties().getPermitAllPaths()
-								.toArray(new String[0]))
-						.permitAll()
-						.requestMatchers(getAuthorizationProperties().getAuthenticatedPaths()
-								.toArray(new String[0]))
-						.authenticated();
+// 		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security =
+// 				http.authorizeRequests()
+// 						.requestMatchers(getAuthorizationProperties().getPermitAllPaths()
+// 								.toArray(new String[0]))
+// 						.permitAll()
+// 						.requestMatchers(getAuthorizationProperties().getAuthenticatedPaths()
+// 								.toArray(new String[0]))
+// 						.authenticated();
 
-		security = SecurityConfigUtils.configureSimpleSecurity(security, getAuthorizationProperties());
-		security.anyRequest().denyAll();
+// 		security = SecurityConfigUtils.configureSimpleSecurity(security, getAuthorizationProperties());
+// 		security.anyRequest().denyAll();
 
-		http.httpBasic().and()
-				.logout()
-				.logoutSuccessUrl(dashboard(getAuthorizationProperties(), "/logout-success-oauth.html"))
-				.and().csrf().disable()
-				.exceptionHandling()
-				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, new AntPathRequestMatcher("/api/**"))
-				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, new AntPathRequestMatcher("/actuator/**"));
+// 		http.httpBasic().and()
+// 				.logout()
+// 				.logoutSuccessUrl(dashboard(getAuthorizationProperties(), "/logout-success-oauth.html"))
+// 				.and().csrf().disable()
+// 				.exceptionHandling()
+// 				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, new AntPathRequestMatcher("/api/**"))
+// 				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, new AntPathRequestMatcher("/actuator/**"));
 
-		if (getOpaqueTokenIntrospector() != null) {
-			http.oauth2ResourceServer()
-					.opaqueToken()
-					.introspector(getOpaqueTokenIntrospector());
-		}
-		else if (getoAuth2ResourceServerProperties().getJwt().getJwkSetUri() != null) {
-			http.oauth2ResourceServer()
-					.jwt()
-					.jwtAuthenticationConverter(grantedAuthoritiesExtractor());
-		}
+// 		if (getOpaqueTokenIntrospector() != null) {
+// 			http.oauth2ResourceServer()
+// 					.opaqueToken()
+// 					.introspector(getOpaqueTokenIntrospector());
+// 		}
+// 		else if (getoAuth2ResourceServerProperties().getJwt().getJwkSetUri() != null) {
+// 			http.oauth2ResourceServer()
+// 					.jwt()
+// 					.jwtAuthenticationConverter(grantedAuthoritiesExtractor());
+// 		}
 
-		getSecurityStateBean().setAuthenticationEnabled(true);
-		return http.getConfigurer(HttpBasicConfigurer.class);
-	}
-}
+// 		getSecurityStateBean().setAuthenticationEnabled(true);
+// 		return http.getConfigurer(HttpBasicConfigurer.class);
+// 	}
+// }
