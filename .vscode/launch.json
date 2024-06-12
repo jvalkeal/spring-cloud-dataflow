@@ -12,6 +12,16 @@
         },
         {
             "type": "java",
+            "name": "SCDF oauth",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "org.springframework.cloud.dataflow.server.single.DataFlowServerApplication",
+            "projectName": "spring-cloud-dataflow-server",
+            "args": "--spring.config.additional-location=/home/jvalkealahti/repos/jvalkeal/randomstuff/dataflow-keycloak-basic/dataflow.yml"
+        },
+        {
+            "type": "java",
             "name": "SCDF postgres",
             "request": "launch",
             "cwd": "${workspaceFolder}",
