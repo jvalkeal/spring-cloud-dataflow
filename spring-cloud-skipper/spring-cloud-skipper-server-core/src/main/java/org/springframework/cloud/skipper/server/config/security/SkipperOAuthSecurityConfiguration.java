@@ -16,20 +16,43 @@
 
 package org.springframework.cloud.skipper.server.config.security;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.cloud.common.security.AuthorizationProperties;
+import org.springframework.cloud.common.security.OAuthClientConfiguration;
+import org.springframework.cloud.common.security.ProviderRoleMapping;
+import org.springframework.cloud.common.security.support.MappingJwtGrantedAuthoritiesConverter;
 // import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
 import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
 import org.springframework.cloud.common.security.support.SecurityConfigUtils;
 import org.springframework.cloud.common.security.support.SecurityStateBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.StringUtils;
 
 /**
  * Setup Spring Security OAuth for the Rest Endpoints of Spring Cloud Data Flow.
@@ -40,7 +63,112 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  */
 @Configuration(proxyBeanMethods = false)
 @Conditional(OnOAuth2SecurityEnabled.class)
-public class SkipperOAuthSecurityConfiguration {}
+public class SkipperOAuthSecurityConfiguration {
+
+	private final OpaqueTokenIntrospector opaqueTokenIntrospector;
+	private final AuthenticationManager authenticationManager;
+	private final AuthorizationProperties authorizationProperties;
+	private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
+	private final OAuth2ClientProperties oauth2ClientProperties;
+
+	public SkipperOAuthSecurityConfiguration(ObjectProvider<OpaqueTokenIntrospector> opaqueTokenIntrospector,
+			ObjectProvider<AuthenticationManager> authenticationManager,
+			ObjectProvider<AuthorizationProperties> authorizationProperties,
+			ObjectProvider<OAuth2ResourceServerProperties> oAuth2ResourceServerProperties,
+			ObjectProvider<OAuth2ClientProperties> oauth2ClientProperties
+	){
+		this.opaqueTokenIntrospector = opaqueTokenIntrospector.getIfAvailable();
+		this.authenticationManager = authenticationManager.getIfAvailable();
+		this.authorizationProperties = authorizationProperties.getIfAvailable();
+		this.oAuth2ResourceServerProperties = oAuth2ResourceServerProperties.getIfAvailable();
+		this.oauth2ClientProperties = oauth2ClientProperties.getIfAvailable();
+	}
+
+
+	// @Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
+		basicAuthenticationEntryPoint.setRealmName(SecurityConfigUtils.BASIC_AUTH_REALM_NAME);
+		basicAuthenticationEntryPoint.afterPropertiesSet();
+
+		if (opaqueTokenIntrospector != null) {
+			BasicAuthenticationFilter basicAuthenticationFilter = new BasicAuthenticationFilter(
+					authenticationManager, basicAuthenticationEntryPoint);
+			http.addFilter(basicAuthenticationFilter);
+		}
+
+		http.authorizeHttpRequests(auth -> {
+			auth.anyRequest().authenticated();
+		});
+
+		http.httpBasic(auth -> {
+		});
+
+		// http.logout(auth -> {
+		// 	auth.logoutSuccessHandler(logoutSuccessHandler(authorizationProperties, oauth2TokenUtilsService));
+		// });
+
+		http.csrf(auth -> {
+			auth.disable();
+		});
+
+		// http.exceptionHandling(auth -> {
+		// 	auth.defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+		// 			new RequestHeaderRequestMatcher("X-Requested-With", "XMLHttpRequest"));
+		// 	RequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(
+		// 			new BrowserDetectingContentNegotiationStrategy(), MediaType.TEXT_HTML);
+		// 	auth.defaultAuthenticationEntryPointFor(
+		// 			new LoginUrlAuthenticationEntryPoint(this.authorizationProperties.getLoginProcessingUrl()),
+		// 			textHtmlMatcher);
+		// 	auth.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
+		// });
+
+		// http.oauth2Login(auth -> {
+		// 	auth.userInfoEndpoint(customizer -> {
+		// 		customizer.userService(plainOauth2UserService).oidcUserService(oidcUserService);
+		// 	});
+		// });
+
+		http.oauth2ResourceServer(resourceserver -> {
+			if (opaqueTokenIntrospector != null) {
+				resourceserver.opaqueToken(opaqueToken -> {
+					opaqueToken.introspector(opaqueTokenIntrospector);
+				});
+			}
+			else if (oAuth2ResourceServerProperties.getJwt().getJwkSetUri() != null) {
+				resourceserver.jwt(jwt -> {
+					jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor());
+				});
+			}
+		});
+
+		// securityStateBean.setAuthenticationEnabled(true);
+
+		return http.build();
+	}
+
+	private Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
+		String providerId = OAuthClientConfiguration.calculateDefaultProviderId(authorizationProperties, oauth2ClientProperties);
+		ProviderRoleMapping providerRoleMapping = authorizationProperties.getProviderRoleMappings()
+				.get(providerId);
+
+		JwtAuthenticationConverter jwtAuthenticationConverter =
+				new JwtAuthenticationConverter();
+
+		MappingJwtGrantedAuthoritiesConverter converter = new MappingJwtGrantedAuthoritiesConverter();
+		converter.setAuthorityPrefix("");
+		jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(converter);
+		if (providerRoleMapping != null) {
+			converter.setAuthoritiesMapping(providerRoleMapping.getRoleMappings());
+			converter.setGroupAuthoritiesMapping(providerRoleMapping.getGroupMappings());
+			if (StringUtils.hasText(providerRoleMapping.getPrincipalClaimName())) {
+				jwtAuthenticationConverter.setPrincipalClaimName(providerRoleMapping.getPrincipalClaimName());
+			}
+		}
+		return jwtAuthenticationConverter;
+	}
+
+}
 // public class SkipperOAuthSecurityConfiguration extends OAuthSecurityConfiguration {
 
 // 	@Autowired

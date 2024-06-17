@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Import;
 		ManagementWebSecurityAutoConfiguration.class,
 		OAuth2ClientAutoConfiguration.class,
 		OAuth2ResourceServerAutoConfiguration.class})
-@Import({IgnoreAllSecurityConfiguration.class, OAuthSecurityConfiguration.class})
-// @Import({OAuthSecurityConfiguration.class})
+// @Import({IgnoreAllSecurityConfiguration.class, OAuthSecurityConfiguration.class})
 public class CommonSecurityAutoConfiguration {
 }

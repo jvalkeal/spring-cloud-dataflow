@@ -80,19 +80,19 @@ import org.springframework.util.StringUtils;
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @Conditional(OnOAuth2SecurityEnabled.class)
-@Import({
-		OAuthSecurityConfiguration.OAuth2AccessTokenResponseClientConfig.class,
-		// OAuthSecurityConfiguration.OAuth2AuthenticationFailureEventConfig.class,
-		OAuthSecurityConfiguration.OpaqueTokenIntrospectorConfig.class,
-		OAuthSecurityConfiguration.OidcUserServiceConfig.class,
-		OAuthSecurityConfiguration.PlainOauth2UserServiceConfig.class,
-		// OAuthSecurityConfiguration.WebClientConfig.class,
-		// OAuthSecurityConfiguration.AuthoritiesMapperConfig.class,
-		OAuthSecurityConfiguration.OAuth2TokenUtilsServiceConfig.class,
-		OAuthSecurityConfiguration.LogoutSuccessHandlerConfig.class,
-		OAuthSecurityConfiguration.ProviderManagerConfig.class,
-		OAuthSecurityConfiguration.AuthenticationProviderConfig.class
-})
+// @Import({
+// 		OAuthSecurityConfiguration.OAuth2AccessTokenResponseClientConfig.class,
+// 		// OAuthSecurityConfiguration.OAuth2AuthenticationFailureEventConfig.class,
+// 		OAuthSecurityConfiguration.OpaqueTokenIntrospectorConfig.class,
+// 		OAuthSecurityConfiguration.OidcUserServiceConfig.class,
+// 		OAuthSecurityConfiguration.PlainOauth2UserServiceConfig.class,
+// 		// OAuthSecurityConfiguration.WebClientConfig.class,
+// 		// OAuthSecurityConfiguration.AuthoritiesMapperConfig.class,
+// 		OAuthSecurityConfiguration.OAuth2TokenUtilsServiceConfig.class,
+// 		OAuthSecurityConfiguration.LogoutSuccessHandlerConfig.class,
+// 		OAuthSecurityConfiguration.ProviderManagerConfig.class,
+// 		OAuthSecurityConfiguration.AuthenticationProviderConfig.class
+// })
 public class OAuthSecurityConfiguration {
 
 	@Autowired
