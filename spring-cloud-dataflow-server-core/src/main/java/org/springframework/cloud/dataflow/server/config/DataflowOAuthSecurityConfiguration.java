@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.dataflow.server.config;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.cloud.common.security.AuthorizationProperties;
@@ -29,7 +29,6 @@ import org.springframework.cloud.common.security.ProviderRoleMapping;
 import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.common.security.support.AccessTokenClearingLogoutSuccessHandler;
 import org.springframework.cloud.common.security.support.MappingJwtGrantedAuthoritiesConverter;
-// import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
 import org.springframework.cloud.common.security.support.OnOAuth2SecurityEnabled;
 import org.springframework.cloud.common.security.support.SecurityConfigUtils;
 import org.springframework.cloud.common.security.support.SecurityStateBean;
@@ -45,7 +44,6 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -126,8 +124,19 @@ public class DataflowOAuthSecurityConfiguration {
 			http.addFilter(basicAuthenticationFilter);
 		}
 
+		List<String> authenticatedPaths = new ArrayList<>(authorizationProperties.getAuthenticatedPaths());
+		authenticatedPaths.add("/");
+		authenticatedPaths.add(dashboard(authorizationProperties, "/**"));
+		authenticatedPaths.add(authorizationProperties.getDashboardUrl());
+
+		List<String> permitAllPaths = new ArrayList<>(authorizationProperties.getPermitAllPaths());
+		permitAllPaths.add(this.authorizationProperties.getDashboardUrl());
+		permitAllPaths.add(dashboard(authorizationProperties, "/**"));
+
 		http.authorizeHttpRequests(auth -> {
-			auth.anyRequest().authenticated();
+			auth.requestMatchers(permitAllPaths.toArray(new String[0])).permitAll();
+			auth.requestMatchers(authenticatedPaths.toArray(new String[0])).authenticated();
+			SecurityConfigUtils.configureSimpleSecurity2(auth, authorizationProperties);
 		});
 
 		http.httpBasic(auth -> {
