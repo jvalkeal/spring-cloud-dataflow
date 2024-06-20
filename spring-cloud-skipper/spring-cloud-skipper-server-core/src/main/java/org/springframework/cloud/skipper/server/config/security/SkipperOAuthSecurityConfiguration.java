@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.skipper.server.config.security;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
@@ -31,12 +34,14 @@ import org.springframework.cloud.common.security.support.SecurityStateBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -63,6 +68,8 @@ import org.springframework.util.StringUtils;
  */
 @Configuration(proxyBeanMethods = false)
 @Conditional(OnOAuth2SecurityEnabled.class)
+@Import({ OAuthClientConfiguration.class })
+@EnableWebSecurity
 public class SkipperOAuthSecurityConfiguration {
 
 	private final OpaqueTokenIntrospector opaqueTokenIntrospector;
@@ -70,22 +77,24 @@ public class SkipperOAuthSecurityConfiguration {
 	private final AuthorizationProperties authorizationProperties;
 	private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
 	private final OAuth2ClientProperties oauth2ClientProperties;
+	private final SecurityStateBean securityStateBean;
 
 	public SkipperOAuthSecurityConfiguration(ObjectProvider<OpaqueTokenIntrospector> opaqueTokenIntrospector,
 			ObjectProvider<AuthenticationManager> authenticationManager,
 			ObjectProvider<AuthorizationProperties> authorizationProperties,
 			ObjectProvider<OAuth2ResourceServerProperties> oAuth2ResourceServerProperties,
-			ObjectProvider<OAuth2ClientProperties> oauth2ClientProperties
+			ObjectProvider<OAuth2ClientProperties> oauth2ClientProperties,
+			ObjectProvider<SecurityStateBean> securityStateBean
 	){
 		this.opaqueTokenIntrospector = opaqueTokenIntrospector.getIfAvailable();
 		this.authenticationManager = authenticationManager.getIfAvailable();
 		this.authorizationProperties = authorizationProperties.getIfAvailable();
 		this.oAuth2ResourceServerProperties = oAuth2ResourceServerProperties.getIfAvailable();
 		this.oauth2ClientProperties = oauth2ClientProperties.getIfAvailable();
+		this.securityStateBean = securityStateBean.getIfAvailable();
 	}
 
-
-	// @Bean
+	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
 		basicAuthenticationEntryPoint.setRealmName(SecurityConfigUtils.BASIC_AUTH_REALM_NAME);
@@ -97,9 +106,18 @@ public class SkipperOAuthSecurityConfiguration {
 			http.addFilter(basicAuthenticationFilter);
 		}
 
+		List<String> authenticatedPaths = new ArrayList<>(authorizationProperties.getAuthenticatedPaths());
+		List<String> permitAllPaths = new ArrayList<>(authorizationProperties.getPermitAllPaths());
+
 		http.authorizeHttpRequests(auth -> {
-			auth.anyRequest().authenticated();
+			auth.requestMatchers(permitAllPaths.toArray(new String[0])).permitAll();
+			auth.requestMatchers(authenticatedPaths.toArray(new String[0])).authenticated();
+			SecurityConfigUtils.configureSimpleSecurity2(auth, authorizationProperties);
 		});
+
+		// http.authorizeHttpRequests(auth -> {
+		// 	auth.anyRequest().authenticated();
+		// });
 
 		http.httpBasic(auth -> {
 		});
@@ -112,16 +130,10 @@ public class SkipperOAuthSecurityConfiguration {
 			auth.disable();
 		});
 
-		// http.exceptionHandling(auth -> {
-		// 	auth.defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-		// 			new RequestHeaderRequestMatcher("X-Requested-With", "XMLHttpRequest"));
-		// 	RequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(
-		// 			new BrowserDetectingContentNegotiationStrategy(), MediaType.TEXT_HTML);
-		// 	auth.defaultAuthenticationEntryPointFor(
-		// 			new LoginUrlAuthenticationEntryPoint(this.authorizationProperties.getLoginProcessingUrl()),
-		// 			textHtmlMatcher);
-		// 	auth.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
-		// });
+		http.exceptionHandling(auth -> {
+			auth.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, new AntPathRequestMatcher("/api/**"));
+			auth.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, new AntPathRequestMatcher("/actuator/**"));
+		});
 
 		// http.oauth2Login(auth -> {
 		// 	auth.userInfoEndpoint(customizer -> {
@@ -142,7 +154,7 @@ public class SkipperOAuthSecurityConfiguration {
 			}
 		});
 
-		// securityStateBean.setAuthenticationEnabled(true);
+		securityStateBean.setAuthenticationEnabled(true);
 
 		return http.build();
 	}

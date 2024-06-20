@@ -56,6 +56,16 @@
             "mainClass": "org.springframework.cloud.skipper.server.app.SkipperServerApplication",
             "projectName": "spring-cloud-skipper-server",
             "args": ""
+        },
+        {
+            "type": "java",
+            "name": "SKIPPER oauth",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "org.springframework.cloud.skipper.server.app.SkipperServerApplication",
+            "projectName": "spring-cloud-skipper-server",
+            "args": "--spring.config.additional-location=/home/jvalkealahti/repos/jvalkeal/randomstuff/dataflow-keycloak-basic/skipper.yml"
         }
     ]
 }

@@ -78,7 +78,6 @@ public class SecurityConfigUtils {
 	}
 
 	public static void configureSimpleSecurity2(
-			// Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> auth,
 			AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth,
 			AuthorizationProperties authorizationProperties) {
 		for (String rule : authorizationProperties.getRules()) {
