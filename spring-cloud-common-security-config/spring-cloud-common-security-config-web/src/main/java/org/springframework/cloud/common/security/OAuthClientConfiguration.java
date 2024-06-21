@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.endpoint.DefaultPasswordTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
@@ -45,11 +46,13 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration(proxyBeanMethods = false)
 public class OAuthClientConfiguration {
@@ -196,6 +199,20 @@ public class OAuthClientConfiguration {
 		}
 		else {
 			throw new IllegalStateException("Unable to retrieve default provider id.");
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	protected static class WebClientConfig {
+
+		@Bean
+		protected WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+			ServletOAuth2AuthorizedClientExchangeFilterFunction oauth2Client =
+					new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+			oauth2Client.setDefaultOAuth2AuthorizedClient(true);
+			return WebClient.builder()
+					.apply(oauth2Client.oauth2Configuration())
+					.build();
 		}
 	}
 
