@@ -40,7 +40,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * When running inside Cloud Foundry, this {@link Configuration} class will reconfigure
- * Spring Cloud Data Flow's security setup in {@link OAuthSecurityConfiguration}, so that
+ * Spring Cloud Data Flow's security setup, so that
  * only users with the CF_SPACE_DEVELOPER_ROLE} can access the REST APIs.
  * <p>
  * Therefore, this configuration will ensure that only Cloud Foundry
