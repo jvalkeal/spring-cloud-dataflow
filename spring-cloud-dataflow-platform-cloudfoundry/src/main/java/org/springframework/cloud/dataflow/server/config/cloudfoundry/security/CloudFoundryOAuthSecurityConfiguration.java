@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
+// import org.springframework.cloud.common.security.OAuthSecurityConfiguration;
 import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.common.security.support.CustomAuthoritiesOpaqueTokenIntrospector;
 import org.springframework.cloud.common.security.support.DefaultAuthoritiesMapper;
@@ -40,7 +40,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * When running inside Cloud Foundry, this {@link Configuration} class will reconfigure
- * Spring Cloud Data Flow's security setup in {@link OAuthSecurityConfiguration}, so that
+ * Spring Cloud Data Flow's security setup, so that
  * only users with the CF_SPACE_DEVELOPER_ROLE} can access the REST APIs.
  * <p>
  * Therefore, this configuration will ensure that only Cloud Foundry
