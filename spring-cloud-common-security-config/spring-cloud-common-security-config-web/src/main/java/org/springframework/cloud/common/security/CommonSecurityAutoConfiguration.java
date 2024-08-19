@@ -21,7 +21,6 @@ import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAu
 import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore({
@@ -29,6 +28,5 @@ import org.springframework.context.annotation.Import;
 		ManagementWebSecurityAutoConfiguration.class,
 		OAuth2ClientAutoConfiguration.class,
 		OAuth2ResourceServerAutoConfiguration.class})
-// @Import({IgnoreAllSecurityConfiguration.class, OAuthSecurityConfiguration.class})
 public class CommonSecurityAutoConfiguration {
 }

@@ -17,13 +17,13 @@ package org.springframework.cloud.common.security;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.cloud.common.security.OAuthSecurityConfigurationOld.BrowserDetectingContentNegotiationStrategy;
 import org.springframework.cloud.common.security.core.support.OAuth2TokenUtilsService;
 import org.springframework.cloud.common.security.support.AccessTokenClearingLogoutSuccessHandler;
 import org.springframework.cloud.common.security.support.AuthoritiesMapper;
@@ -40,18 +40,15 @@ import org.springframework.cloud.common.security.support.SecurityStateBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.endpoint.DefaultPasswordTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
@@ -76,23 +73,13 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.accept.HeaderContentNegotiationStrategy;
+import org.springframework.web.context.request.NativeWebRequest;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @Conditional(OnOAuth2SecurityEnabled.class)
-// @Import({
-// 		OAuthSecurityConfiguration.OAuth2AccessTokenResponseClientConfig.class,
-// 		// OAuthSecurityConfiguration.OAuth2AuthenticationFailureEventConfig.class,
-// 		OAuthSecurityConfiguration.OpaqueTokenIntrospectorConfig.class,
-// 		OAuthSecurityConfiguration.OidcUserServiceConfig.class,
-// 		OAuthSecurityConfiguration.PlainOauth2UserServiceConfig.class,
-// 		// OAuthSecurityConfiguration.WebClientConfig.class,
-// 		// OAuthSecurityConfiguration.AuthoritiesMapperConfig.class,
-// 		OAuthSecurityConfiguration.OAuth2TokenUtilsServiceConfig.class,
-// 		OAuthSecurityConfiguration.LogoutSuccessHandlerConfig.class,
-// 		OAuthSecurityConfiguration.ProviderManagerConfig.class,
-// 		OAuthSecurityConfiguration.AuthenticationProviderConfig.class
-// })
 public class OAuthSecurityConfiguration {
 
 	@Autowired
@@ -353,6 +340,19 @@ public class OAuthSecurityConfiguration {
 			}
 		}
 		return jwtAuthenticationConverter;
+	}
+
+	private static class BrowserDetectingContentNegotiationStrategy extends HeaderContentNegotiationStrategy {
+		@Override
+		public List<MediaType> resolveMediaTypes(NativeWebRequest request) throws HttpMediaTypeNotAcceptableException {
+			final List<MediaType> supportedMediaTypes = super.resolveMediaTypes(request);
+			final String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+			if (userAgent != null && userAgent.contains("Mozilla/5.0")
+					&& !supportedMediaTypes.contains(MediaType.APPLICATION_JSON)) {
+				return Collections.singletonList(MediaType.TEXT_HTML);
+			}
+			return Collections.singletonList(MediaType.APPLICATION_JSON);
+		}
 	}
 
 }
